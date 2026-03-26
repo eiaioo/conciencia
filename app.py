@@ -4,7 +4,7 @@ import pandas as pd
 st.set_page_config(page_title="CONCIENCIA - Sistema Maestro", layout="wide")
 
 # ==========================================
-# 1. BASE DE DATOS TÉCNICA
+# 1. BASE DE DATOS TÉCNICA DEFINITIVA (AUDITADA)
 # ==========================================
 
 DB_MASAS = {
@@ -14,8 +14,8 @@ DB_MASAS = {
     "Masa Red Velvet": {"Harina de fuerza": 100, "Azúcar": 16, "Mantequilla sin sal": 17, "Huevo": 30, "Leche entera": 4, "Sal fina": 1.8, "Levadura instantánea": 1.0, "Cacao en polvo": 0.8, "Colorante Rojo": 0.7, "Vinagre": 0.3, "merma": 1.0, "tz_ratio": 0.07, "tz_liq": 5},
     "Masa Brioche Rosca": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura fresca": 0.35, "Sal fina": 2.2, "Agua Azahar": 0.6, "merma": 1.0, "tz_ratio": 0.025, "tz_liq": 1},
     "Masa Muerto Tradicional": {"Harina de fuerza": 100, "Leche entera": 25, "Yemas": 24, "Claras": 16, "Azúcar": 20, "Mantequilla sin sal": 25, "Sal fina": 2, "Levadura fresca": 3, "Agua Azahar": 2, "Ralladura Naranja": 1, "merma": 1.0},
-    "Masa Muerto Guayaba": {"Harina de fuerza": 100, "Leche entera": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla sin sal": 25, "Levadura fresca": 5, "Sal fina": 1.8, "Polvo de Guayaba": 5, "merma": 1.0, "huesos_refuerzo": True},
-    "Mezcla de Brownies": {"Mantequilla sin sal": 330, "Azúcar Blanca": 275, "Azúcar Mascabada": 120, "Chocolate Turin Amargo": 165, "Harina de fuerza": 190, "Cocoa alcalinizada": 75, "Sal fina": 8, "Claras": 160, "Yemas": 95, "Vainilla": 8, "Nuez Tostada": 140, "Sal escamas": 1.8, "merma": 1.0, "fijo": True}
+    "Masa Muerto Guayaba": {"Harina de fuerza": 100, "Leche entera": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla sin sal": 25, "Levadura fresca": 5, "Sal fina": 1.8, "Polvo de Guayaba": 5, "merma": 1.0, "huesos": True},
+    "Mezcla Brownie": {"Mantequilla sin sal": 330, "Azúcar Blanca": 275, "Azúcar Mascabada": 120, "Chocolate Turin Amargo": 165, "Harina de fuerza": 190, "Cocoa alcalinizada": 75, "Sal fina": 8, "Claras": 160, "Yemas": 95, "Vainilla": 8, "Nuez Tostada": 140, "merma": 1.0, "fijo": True}
 }
 
 DB_COMPLEMENTOS = {
@@ -27,17 +27,15 @@ DB_COMPLEMENTOS = {
     "Lágrima de Pinole": {"Harina de fuerza": 79, "Pinole": 21, "Azúcar Glass": 100, "Mantequilla sin sal": 100},
     "Lágrima de Oreo": {"Harina de fuerza": 100, "Azúcar Glass": 75, "Mantequilla sin sal": 100, "Galleta Oreo": 25},
     "Crema Pastelera Vainilla": {"Leche entera": 500, "Yemas": 100, "Azúcar": 120, "Fécula de Maíz": 45, "Mantequilla sin sal": 30, "Vainilla": 6},
-    "Crema Pastelera Chocolate": {"Leche entera": 480, "Yemas": 100, "Azúcar": 100, "Fécula de Maíz": 45, "Chocolate 60%": 120},
-    "Crema Pastelera Especial Turin": {"Leche entera": 450, "Yemas": 100, "Azúcar": 90, "Fécula de Maíz": 45, "Chocolate Turin": 120, "Mantequilla sin sal": 20},
-    "Crema Ruby 50/50": {"Leche entera": 131.5, "Crema para batir 35%": 131.5, "Yemas": 53, "Azúcar": 63, "Fécula de Maíz": 24, "Mantequilla sin sal": 16, "Sal": 0.8},
+    "Crema Pastelera Chocolate": {"Leche entera": 480, "Yemas": 100, "Azúcar": 100, "Fécula de Maíz": 45, "Chocolate 60%": 120, "Mantequilla sin sal": 30},
+    "Crema Pastelera Especial Turin": {"Leche entera": 450, "Yemas": 100, "Azúcar": 90, "Fécula de Maíz": 45, "Choco Turin": 120, "Mantequilla sin sal": 20},
+    "Crema Ruby 50/50": {"Leche entera": 131.5, "Crema para batir 35%": 131.5, "Yemas": 53, "Azúcar": 63, "Fécula de Maíz": 24, "Mantequilla sin sal": 16, "Sal fina": 0.8},
     "Glaseado Ruby": {"Chocolate Ruby": 80, "Azúcar Glass": 160, "Leche entera": 50},
     "Glaseado Turin": {"Azúcar Glass": 200, "Chocolate Turin Cuerpos": 100, "Leche entera": 50, "Cabeza de Conejo": 1},
     "Decoración Tradicional Rosca": {"Ate de colores": 50, "Higo en almíbar": 20, "Cereza marrasquino": 10},
-    "Decoración Nuez": {"Nuez Fileteada": 15},
     "Schmear Canela": {"Mantequilla sin sal": 200, "Azúcar Mascabada": 300, "Canela": 25},
-    "Schmear Red Velvet": {"Mantequilla sin sal": 6, "Azúcar": 6, "Cacao": 1.8, "Nuez": 4, "Chocolate amargo": 4},
     "Rebozado Muerto": {"Mantequilla sin sal": 6.5, "Azúcar": 12.5},
-    "Inclusión Frutos Rojos": {"Pasas": 4, "Arándanos": 4, "Té Earl Grey": 2, "Vainilla": 0.5},
+    "Inclusión Frutos Rojos": {"Pasas": 4, "Arándanos": 4, "Té Earl Grey": 2},
     "Inclusión Manzana": {"Orejón de Manzana": 8, "Agua tibia": 2}
 }
 
@@ -49,7 +47,7 @@ ARBOL = {
     "Berlinas": {
         "espec": {"Vainilla": ["Crema Pastelera Vainilla"], "Ruby v2.0": ["Crema Ruby 50/50", "Glaseado Ruby"], "Turín": ["Crema Pastelera Especial Turin", "Glaseado Turin"]},
         "tamaños": {"Estándar": 60}, "masa": "Masa de Berlinas",
-        "override_p": {"Ruby v2.0": (70, {"Crema Ruby 50/50": 40, "Glaseado de Chocolate Ruby": 8}), "Turín": (60, {"Crema Pastelera Especial Turin": 80, "Glaseado Turin": 16})}
+        "override_p": {"Ruby v2.0": (70, {"Crema Ruby 50/50": 40, "Glaseado Ruby": 8}), "Turín": (60, {"Crema Pastelera Especial Turin": 80, "Glaseado Turin": 16}), "Vainilla": (60, {"Crema Pastelera Vainilla": 80})}
     },
     "Rollos": {
         "espec": {"Tradicional": ["Schmear Canela", "Inclusión Frutos Rojos"], "Manzana": ["Schmear Canela", "Inclusión Manzana"], "Red Velvet": ["Schmear Red Velvet"]},
@@ -68,7 +66,7 @@ ARBOL = {
         "espec": {"Tradicional": ["Rebozado Muerto"], "Guayaba": ["Rebozado Muerto"]},
         "tamaños": {"Estándar": 85}, "masa": "Masa Muerto Tradicional", "p_ex": 1, "masa_ov": {"Guayaba": "Masa Muerto Guayaba"}
     },
-    "Brownies": {"espec": {"Chocolate": []}, "tamaños": {"Molde 20x20": 1}, "masa": "Mezcla de Brownies"}
+    "Brownies": {"espec": {"Chocolate": []}, "tamaños": {"Molde 20x20": 1}, "masa": "Mezcla Brownie"}
 }
 
 # ==========================================
@@ -97,32 +95,39 @@ with st.expander("📝 Cargar Nuevo Producto", expanded=True):
                 st.rerun()
 
 # ==========================================
-# 3. LÓGICA DE PRODUCCIÓN
+# 3. MOTOR DE CÁLCULO (FUERA DE LAS PESTAÑAS)
 # ==========================================
 
 if st.session_state.comanda:
     if st.button("🗑️ Limpiar Todo"): st.session_state.comanda = []; st.rerun()
-    t_pes, t_sup = st.tabs(["🥣 Hoja de Producción", "📦 Lista Maestra (Checklist)"])
-    master_inv = {}
-
+    
+    # 1. Agrupar items por Masa Madre
     lotes_masa = {}
     for item in st.session_state.comanda:
         m_id = ARBOL[item['fam']].get("masa_ov", {}).get(item['esp'], ARBOL[item['fam']]['masa'])
         if m_id not in lotes_masa: lotes_masa[m_id] = []
         lotes_masa[m_id].append(item)
 
+    # 2. Diccionario global para la Lista Maestra
+    master_inv = {}
+
+    t_pes, t_sup = st.tabs(["🥣 Hoja de Producción", "📦 Lista Maestra (Checklist)"])
+
     with t_pes:
         for m_id, items in lotes_masa.items():
             m_dna = DB_MASAS[m_id]
             st.markdown(f"## 🛠️ Lote: {m_id}")
+            
+            # CALCULO MASA TOTAL DEL LOTE
             batch_masa_gr = 0
             for i in items:
                 p_u = ARBOL[i['fam']].get("override_p", {}).get(i['esp'], (ARBOL[i['fam']]['tamaños'][i['tam']], 0))[0]
                 batch_masa_gr += (p_u * i['cant']) / m_dna['merma']
             
-            sum_porc = sum([v for k,v in m_dna.items() if isinstance(v, (int, float)) and "_" not in k and k != "merma" and k != "factor"])
+            sum_porc = sum([v for k,v in m_dna.items() if isinstance(v, (int, float)) and "_" not in k and k != "merma" and k != "factor" and k != "huesos"])
             h_base = (batch_masa_gr * 100) / sum_porc
 
+            # Agrupar complementos por sabor para mostrar una sola columna por sabor
             sabores_batch = {}
             for i in items:
                 key = (i['esp'], i['rel'], i['tam'])
@@ -130,25 +135,35 @@ if st.session_state.comanda:
                 sabores_batch[key].append(i)
 
             cols = st.columns(1 + len(sabores_batch))
+            
+            # --- COLUMNA 1: MASA ---
             with cols[0]:
                 st.info(f"**🥣 MASA (Total: {batch_masa_gr:,.1f}g)**")
                 for ing, porc in m_dna.items():
-                    if isinstance(porc, (int, float)) and "_" not in ing and ing != "merma" and ing != "factor":
-                        gr = (porc * h_base) / 100; st.write(f"• {ing}: **{gr:,.1f}g**")
+                    if isinstance(porc, (int, float)) and "_" not in ing and ing != "merma" and ing != "factor" and ing != "huesos":
+                        gr = (porc * h_base) / 100
+                        st.write(f"• {ing}: **{gr:,.1f}g**")
                         master_inv[ing] = master_inv.get(ing, 0) + gr
-                if "tz_ratio" in m_dna: st.warning(f"⚡ TZ: {(h_base*m_dna['tz_ratio']):,.1f}g H / {(h_base*m_dna['tz_ratio']*m_dna['tz_liq']):,.1f}g L")
+                
+                # Tangzhongs y Huesos
+                if "tz_ratio" in m_dna:
+                    tz_h = h_base * m_dna['tz_ratio']
+                    st.warning(f"⚡ TZ: {tz_h:,.1f}g H / {tz_h*m_dna['tz_liq']:,.1f}g L")
                 if "tz_fijo_h" in m_dna:
                     f_tz = h_base / 1000
-                    st.warning(f"⚡ TZ: {(m_dna['tz_fijo_h']*f_tz):,.1f}g H / {(m_dna['tz_fijo_l']*f_tz):,.1f}g L")
-                if m_dna.get("huesos_refuerzo"):
-                    r = batch_masa_gr * 0.25; st.info(f"🦴 Huesos: +{r*0.3:,.1f}g H / +{r*0.1:,.1f}g Y")
-                    master_inv["Harina de fuerza"] = master_inv.get("Harina de fuerza", 0) + (r*0.3)
-                    master_inv["Yemas"] = master_inv.get("Yemas", 0) + (r*0.1)
+                    st.warning(f"⚡ TZ: {m_dna['tz_fijo_h']*f_tz:,.1f}g H / {m_dna['tz_fijo_l']*f_tz:,.1f}g L")
+                if m_dna.get("huesos"):
+                    r_h = batch_masa_gr * 0.25
+                    st.info(f"🦴 Huesos: +{r_h*0.3:,.1f}g H / +{r_h*0.1:,.1f}g Y")
+                    master_inv["Harina de fuerza"] = master_inv.get("Harina de fuerza", 0) + (r_h*0.3)
+                    master_inv["Yemas"] = master_inv.get("Yemas", 0) + (r_h*0.1)
 
+            # --- COLUMNAS DE COMPLEMENTOS ---
             for idx, ((e_name, r_name, t_name), s_items) in enumerate(sabores_batch.items()):
                 with cols[idx+1]:
                     tot_p = sum(si['cant'] for si in s_items)
                     st.success(f"✨ **{e_name} ({t_name})**")
+                    
                     cfg = ARBOL[s_items[0]['fam']]
                     list_subs = []
                     base_espec = cfg["espec"][e_name]
@@ -158,9 +173,36 @@ if st.session_state.comanda:
 
                     for sub_id in list_subs:
                         s_rec = DB_COMPLEMENTOS[sub_id]
+                        # Peso unitario del extra
                         if s_items[0]['fam'] == "Rosca de reyes" and sub_id == r_name: p_u_ex = cfg["p_relleno_map"][t_name]
                         elif s_items[0]['fam'] == "Conchas": p_u_ex = cfg["p_ex"][t_name]
                         elif "override_p" in cfg and e_name in cfg["override_p"]: p_u_ex = cfg["override_p"][e_name][1].get(sub_id, 15)
                         else: p_u_ex = 15
+                        
                         p_batch_sub = p_u_ex * tot_p
-                        st.markdown(f"**{sub_id} (Total: {p_batch_sub:,.1f}g)**")
+                        st.markdown(f"**{sub_id} ({p_batch_sub:,.1f}g)**")
+                        
+                        factor = p_batch_sub / sum([v for v in s_rec.values() if isinstance(v, (int, float))])
+                        for ing, val in s_rec.items():
+                            if "Cabeza" in ing:
+                                st.write(f"- {ing}: {val*tot_p} pz")
+                                master_inv[ing] = master_inv.get(ing, 0) + (val*tot_p)
+                            else:
+                                gr_sub = val * (tot_p if "Rebozado" in sub_id or "Decoración" in sub_id else factor)
+                                st.write(f"- {ing}: {gr_sub:,.1f}g")
+                                master_inv[ing] = master_inv.get(ing, 0) + gr_sub
+            st.divider()
+
+    # --- PESTAÑA LISTA MAESTRA ---
+    with t_sup:
+        st.header("📦 Lista de Insumos (Checklist)")
+        sorted_items = sorted(master_inv.items())
+        for insumo, cantidad in sorted_items:
+            col_check, col_text = st.columns([0.1, 0.9])
+            check_key = f"done_{insumo}"
+            is_checked = col_check.checkbox("", key=check_key)
+            label_text = f"{insumo}: **{cantidad:,.1f}** {'pz' if any(x in insumo for x in ['Cabeza', 'Oreo', 'Cereza', 'Higo']) else 'g'}"
+            if is_checked:
+                col_text.markdown(f"~~{label_text}~~", unsafe_allow_html=True)
+            else:
+                col_text.markdown(f"{label_text}", unsafe_allow_html=True)
