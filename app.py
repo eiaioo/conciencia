@@ -49,7 +49,7 @@ ARBOL = {
     "Berlinas": {
         "espec": {"Vainilla": ["Crema Pastelera Vainilla"], "Ruby v2.0": ["Crema Ruby 50/50", "Glaseado Ruby"], "Turín": ["Crema Pastelera Especial Turin", "Glaseado Turin"]},
         "tamaños": {"Estándar": 60}, "masa": "Masa de Berlinas",
-        "override_p": {"Ruby v2.0": (70, {"Crema Ruby 50/50": 40, "Glaseado Ruby": 8}), "Turín": (60, {"Crema Pastelera Especial Turin": 80, "Glaseado Turin": 16}), "Vainilla": (60, {"Crema Pastelera Vainilla": 80})}
+        "override_p": {"Ruby v2.0": (70, {"Crema Ruby 50/50": 40, "Glaseado de Chocolate Ruby": 8}), "Turín": (60, {"Crema Pastelera Especial Turin": 80, "Glaseado Turin": 16})}
     },
     "Rollos": {
         "espec": {"Tradicional": ["Schmear Canela", "Inclusión Frutos Rojos"], "Manzana": ["Schmear Canela", "Inclusión Manzana"], "Red Velvet": ["Schmear Red Velvet"]},
@@ -72,7 +72,7 @@ ARBOL = {
 }
 
 # ==========================================
-# 2. LÓGICA DE INTERFAZ (RESET AUTOMÁTICO)
+# 2. LÓGICA DE INTERFAZ
 # ==========================================
 
 if 'comanda' not in st.session_state: st.session_state.comanda = []
@@ -83,25 +83,21 @@ st.title("🥐 Gestión Técnica CONCIENCIA")
 with st.expander("📝 Cargar Nuevo Producto", expanded=True):
     fk = st.session_state.form_key
     fam = st.selectbox("1. Familia", ["-"] + list(ARBOL.keys()), key=f"fam_{fk}")
-    
     if fam != "-":
         esp = st.selectbox("2. Especialidad", ["-"] + list(ARBOL[fam]["espec"].keys()), key=f"esp_{fk}")
         if esp != "-":
             tam = st.selectbox("3. Tamaño", list(ARBOL[fam]["tamaños"].keys()), key=f"tam_{fk}")
-            
             rel = "N/A"
             if fam == "Rosca de reyes":
                 rel = st.selectbox("4. Relleno", ARBOL[fam]["espec"][esp]["rellenos"], key=f"rel_{fk}")
-            
             cant = st.number_input("5. Cantidad", min_value=1, value=1, key=f"cant_{fk}")
-            
             if st.button("✅ AGREGAR"):
                 st.session_state.comanda.append({"fam": fam, "esp": esp, "tam": tam, "rel": rel, "cant": cant})
-                st.session_state.form_key += 1 # Resetea los menús
+                st.session_state.form_key += 1
                 st.rerun()
 
 # ==========================================
-# 3. LÓGICA DE PRODUCCIÓN (BATCHES)
+# 3. LÓGICA DE PRODUCCIÓN
 # ==========================================
 
 if st.session_state.comanda:
@@ -118,19 +114,16 @@ if st.session_state.comanda:
     with t_pes:
         for m_id, items in lotes_masa.items():
             m_dna = DB_MASAS[m_id]
-            st.markdown(f"## 🛠️ Lote de Masa: {m_id}")
+            st.markdown(f"## 🛠️ Lote: {m_id}")
             
-            # --- CALCULO MASA TOTAL ---
             batch_masa_gr = 0
             for i in items:
                 p_u = ARBOL[i['fam']].get("override_p", {}).get(i['esp'], (ARBOL[i['fam']]['tamaños'][i['tam']], 0))[0]
                 batch_masa_gr += (p_u * i['cant']) / m_dna['merma']
             
-            # Suma de porcentajes excluyendo mermas y configs
             sum_porc = sum([v for k,v in m_dna.items() if isinstance(v, (int, float)) and "_" not in k and k != "merma" and k != "factor"])
             h_base = (batch_masa_gr * 100) / sum_porc
 
-            # Agrupar complementos por sabor/especialidad
             sabores_batch = {}
             for i in items:
                 key = (i['esp'], i['rel'], i['tam'])
@@ -139,7 +132,7 @@ if st.session_state.comanda:
 
             cols = st.columns(1 + len(sabores_batch))
             with cols[0]:
-                st.info("**🥣 MASA**")
+                st.info(f"**🥣 MASA (Total: {batch_masa_gr:,.1f}g)**")
                 if m_dna.get("fijo"):
                     for ing, val in m_dna.items():
                         if isinstance(val, (int, float)) and "_" not in ing and ing != "merma" and ing != "fijo":
@@ -155,11 +148,6 @@ if st.session_state.comanda:
                     if "tz_fijo_h" in m_dna:
                         f_tz = h_base / 1000
                         st.warning(f"⚡ TZ: {(m_dna['tz_fijo_h']*f_tz):,.1f}g H / {(m_dna['tz_fijo_l']*f_tz):,.1f}g L")
-                    if m_dna.get("huesos_refuerzo"):
-                        r = batch_masa_gr * 0.25
-                        st.info(f"🦴 Huesos: +{r*0.3:,.1f}g H / +{r*0.1:,.1f}g Y")
-                        master_inv["Harina de fuerza"] = master_inv.get("Harina de fuerza", 0) + (r*0.3)
-                        master_inv["Yemas"] = master_inv.get("Yemas", 0) + (r*0.1)
 
             for idx, ((e_name, r_name, t_name), s_items) in enumerate(sabores_batch.items()):
                 with cols[idx+1]:
@@ -168,23 +156,22 @@ if st.session_state.comanda:
                     
                     cfg = ARBOL[s_items[0]['fam']]
                     list_subs = []
-                    # Manejar diccionarios o listas de especialidad
                     base_espec = cfg["espec"][e_name]
                     if isinstance(base_espec, dict): list_subs = base_espec["fijos"].copy()
                     else: list_subs = base_espec.copy()
-                    
                     if r_name not in ["N/A", "Sin Relleno"]: list_subs.append(r_name)
 
                     for sub_id in list_subs:
-                        st.write(f"**{sub_id}**")
                         s_rec = DB_COMPLEMENTOS[sub_id]
-                        # Calcular peso total de la sub-receta
                         if s_items[0]['fam'] == "Rosca de reyes" and sub_id == r_name: p_u_ex = cfg["p_relleno_map"][t_name]
                         elif s_items[0]['fam'] == "Conchas": p_u_ex = cfg["p_ex"][t_name]
                         elif "override_p" in cfg and e_name in cfg["override_p"]: p_u_ex = cfg["override_p"][e_name][1].get(sub_id, 15)
                         else: p_u_ex = 15
                         
-                        fact = (p_u_ex * tot_p) / sum([v for v in s_rec.values() if isinstance(v, (int, float))])
+                        p_batch_sub = p_u_ex * tot_p
+                        st.markdown(f"**{sub_id} (Total: {p_batch_sub:,.1f}g)**")
+                        
+                        fact = p_batch_sub / sum([v for v in s_rec.values() if isinstance(v, (int, float))])
                         for ing, val in s_rec.items():
                             if "Cabeza" in ing:
                                 st.write(f"- {ing}: {val*tot_p} pz"); master_inv[ing] = master_inv.get(ing, 0) + (val*tot_p)
@@ -195,5 +182,5 @@ if st.session_state.comanda:
 
     with t_sup:
         st.header("🛒 Lista Maestra")
-        df_sum = pd.DataFrame(master_inv.items(), columns=["Insumo", "Total"]).round(1)
+        df_sum = pd.DataFrame(master_inv.items(), columns=["Insumo", "Cantidad"]).round(1)
         st.dataframe(df_sum.sort_values("Insumo"), hide_index=True, use_container_width=True)
