@@ -1,90 +1,104 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Sistema Conciencia v2.1", layout="wide")
+st.set_page_config(page_title="Sistema Conciencia v2.3", layout="wide")
 st.title("🥐 Sistema de Producción Técnico - CONCIENCIA")
 
 # --- BASE DE DATOS TÉCNICA ---
 MASAS = {
+    "Pan de Muerto Tradicional": {
+        "descripcion": "Brioche mexicano: Naranja + Azahar (70g base + 15g huesos)",
+        "ingredientes": {
+            "Harina panificable": 100, "Leche": 25, "Yemas": 24, "Claras": 16,
+            "Azúcar": 20, "Mantequilla": 25, "Sal": 2.0, "Levadura fresca": 3.0,
+            "Agua de azahar": 2.0, "Ralladura de naranja": 1.0
+        },
+        "presentaciones": {"Pieza Tradicional (85g)": 85},
+        "merma": 1.0,
+        "procedimiento": [
+            "1. Temperar mantequilla (18–20°C).",
+            "2. Activar levadura en leche tibia + pizca de azúcar.",
+            "3. Mezcla inicial: Harina + leche + levadura + huevos.",
+            "4. Amasar 5–8 min; agregar azúcar en 2 partes.",
+            "5. Incorporar mantequilla poco a poco hasta ventana media.",
+            "6. Agregar sal, azahar y ralladura al final (Refuerza gluten).",
+            "7. Fermentación inicial: 1–1.5 h a 26°C.",
+            "8. División: 70g para cuerpo y 15g para huesos."
+        ]
+    },
+    "Pan de Muerto (Guayaba)": {
+        "descripcion": "Masa enriquecida con polvo de guayaba y técnica de huesos reforzados",
+        "ingredientes": {
+            "Harina de fuerza": 100, "Leche": 30, "Yemas": 18, "Claras": 12,
+            "Azúcar": 20, "Mantequilla": 25, "Levadura fresca": 5.0, "Sal": 1.8,
+            "Polvo de guayaba": 5.0
+        },
+        "presentaciones": {"Pieza Guayaba (95g)": 95},
+        "merma": 1.0,
+        "procedimiento": [
+            "1. Activar levadura fresca en leche.",
+            "2. Mezcla: Harina + levadura activada + huevos.",
+            "3. Incorporar azúcar gradualmente.",
+            "4. Integrar polvo de guayaba (evita que robe agua al inicio).",
+            "5. Mantequilla en tandas y sal al final.",
+            "6. T° final masa: 24-26°C."
+        ],
+        "huesos_reforzados": {"harina_extra_porc": 0.30, "yema_extra_porc": 0.10, "reserva_masa_porc": 0.25}
+    },
     "Masa de Conchas": {
-        "descripcion": "Masa enriquecida para conchas estándar y mini",
-        "factor_panadero": 1.963, # Factor para dividir el peso total y sacar harina
+        "descripcion": "Masa brioche base para conchas conciencia",
         "ingredientes": {
             "Harina": 100, "Huevo": 40, "Leche": 24, "Azúcar": 30, 
-            "Mantequilla": 40, "Sal": 2.5, "Levadura seca": 1.8, "Vainilla": 2
+            "Mantequilla": 40, "Sal": 2.5, "Levadura seca": 1.8, "Vainilla": 2.0
         },
-        "presentaciones": {"Estándar": 95, "Mini": 35},
+        "presentaciones": {"Estándar (95g)": 95, "Mini (35g)": 35},
         "merma": 1.0,
-        "tangzhong": None
+        "procedimiento": ["Autólisis 20 min", "Levadura+Vainilla", "Azúcar en 3 tandas", "Mantequilla", "T° 24-26°C"]
     },
     "Masa de Berlinas": {
-        "descripcion": "Masa específica para fritura profunda",
+        "descripcion": "Masa para fritura con Tangzhong 1:5",
         "ingredientes": {
             "Harina de fuerza": 100, "Azúcar": 22, "Mantequilla": 20,
             "Huevo entero": 25, "Leche entera": 22, "Sal": 1.8, "Levadura seca": 1.0
         },
         "presentaciones": {"Pieza 60g": 60},
-        "merma": 0.85, # 15% merma por corte circular
-        "tangzhong": {"ratio_harina": 0.05, "relacion_liquido": 5} # 5% harina total, 1:5
-    },
-    "Masa Brioche (EXCLUSIVA ROSCA)": {
-        "descripcion": "Base para Rosca de Reyes y derivados autorizados",
-        "ingredientes": {
-            "Harina de fuerza": 100, "Azúcar refinada": 25, "Miel": 3,
-            "Mantequilla sin sal": 30, "Huevo entero": 20, "Yema adicional": 4,
-            "Leche entera": 24, "Levadura seca": 0.35, "Sal": 2.2,
-            "Ralladuras": 1.1, "Agua de azahar": 0.6
-        },
-        "presentaciones": {"Rosca Mediana (900g)": 900, "Pieza Individual (100g)": 100},
-        "merma": 1.0,
-        "tangzhong": {"ratio_harina": 0.025, "relacion_liquido": 1} # 2.5% harina total, 1:1
-    },
-    "Masa Roles Red Velvet": {
-        "descripcion": "Masa brioche roja con Tangzhong 1:5",
-        "ingredientes": {
-            "Harina de fuerza": 100, "Azúcar": 16, "Mantequilla": 17,
-            "Huevo": 30, "Leche": 4, "Sal": 1.8, "Levadura instantánea": 1.0,
-            "Cacao": 0.8, "Colorante Rojo": 0.7, "Vinagre": 0.3
-        },
-        "presentaciones": {"Rol Individual": 90},
-        "merma": 1.0,
-        "tangzhong": {"ratio_harina": 0.07, "relacion_liquido": 5} # 7% harina total, 1:5
+        "merma": 0.85,
+        "tangzhong": {"ratio_harina": 0.05, "relacion_liquido": 5},
+        "procedimiento": ["Preparar Tangzhong 1:5", "Gluten al 70% antes de grasa", "Fritura a 172°C"]
     }
 }
 
-TOPPINGS_RELLENOS = {
+ACABADOS = {
+    "Rebozado Tradicional (Muerto)": {"receta": {"Mantequilla (baño)": 6.5, "Azúcar (rebozado)": 12.5, "Ralladura naranja (azúcar)": 0.25}},
     "Lágrima Concha Chocolate": {"unitario": 30, "mini": 10, "receta": {"Harina": 87.5, "Cacao": 12.5, "Azúcar Glass": 100, "Mantequilla": 100}},
     "Lágrima Concha Vainilla": {"unitario": 30, "mini": 10, "receta": {"Harina": 100, "Azúcar Glass": 100, "Mantequilla": 100}},
-    "Crema Pastelera Vainilla": {"unitario": 80, "mini": 40, "receta": {"Leche": 500, "Yemas": 100, "Azúcar": 120, "Fécula": 45, "Mantequilla": 30, "Vainilla": 6}},
-    "Crema Pastelera Chocolate": {"unitario": 80, "mini": 40, "receta": {"Leche": 480, "Yemas": 100, "Azúcar": 100, "Fécula": 45, "Chocolate 60%": 120}},
-    "Schmear Roles RV": {"unitario": 15, "mini": 8, "receta": {"Mantequilla": 6, "Azúcar": 6, "Cacao": 1.8, "Maicena": 0.6, "Nuez": 4, "Chocolate": 4}},
-    "Ninguno": {"unitario": 0, "mini": 0, "receta": {}}
+    "Ninguno": {"receta": {}}
 }
 
-# --- LÓGICA APP ---
+# --- LÓGICA INTERFAZ ---
 if 'plan' not in st.session_state: st.session_state.plan = []
 
-t1, t2, t3 = st.tabs(["📋 Plan de Producción", "🥣 Recetas de Masas", "🛒 Lista Maestra"])
+t1, t2, t3 = st.tabs(["📋 Plan de Producción", "🥣 Recetas y Procesos", "🛒 Lista Maestra"])
 
 with t1:
-    st.subheader("Configurar producción")
+    st.subheader("Configurar pedido")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         m_sel = st.selectbox("Masa", list(MASAS.keys()))
     with c2:
-        t_sel = st.selectbox("Tamaño/Presentación", list(MASAS[m_sel]["presentaciones"].keys()))
+        t_sel = st.selectbox("Tamaño", list(MASAS[m_sel]["presentaciones"].keys()))
     with c3:
-        r_sel = st.selectbox("Relleno/Lágrima", list(TOPPINGS_RELLENOS.keys()))
+        a_sel = st.selectbox("Acabado/Lágrima", list(ACABADOS.keys()))
     with c4:
-        cant = st.number_input("Cantidad", min_value=1, value=1)
+        cant = st.number_input("Piezas", min_value=1, value=1)
     
-    if st.button("Agregar al pedido"):
-        st.session_state.plan.append({"masa": m_sel, "tamaño": t_sel, "extra": r_sel, "cant": cant})
+    if st.button("Añadir a Producción"):
+        st.session_state.plan.append({"masa": m_sel, "tamaño": t_sel, "extra": a_sel, "cant": cant})
 
-    st.write("---")
     if st.session_state.plan:
+        st.write("---")
         st.table(pd.DataFrame(st.session_state.plan))
-        if st.button("Borrar Plan"): st.session_state.plan = []
+        if st.button("Limpiar plan"): st.session_state.plan = []
 
 # --- CÁLCULOS ---
 compras = {}
@@ -93,45 +107,51 @@ if st.session_state.plan:
     with t2:
         for item in st.session_state.plan:
             m_data = MASAS[item['masa']]
-            st.header(f"Receta: {item['masa']}")
-            st.caption(m_data['descripcion'])
+            st.header(f"Producción: {item['masa']} ({item['tamaño']})")
             
-            # Cálculo de masa
             peso_u = m_data['presentaciones'][item['tamaño']]
             masa_total = (peso_u * item['cant']) / m_data['merma']
-            
-            # Harina base
             sum_porc = sum(m_data['ingredientes'].values())
             h_base = (masa_total * 100) / sum_porc
             
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.subheader("Ingredientes Masa")
+            c_izq, c_der = st.columns(2)
+            with c_izq:
+                st.subheader("🥣 Batido Principal")
                 for ing, porc in m_data['ingredientes'].items():
                     peso = (porc * h_base) / 100
                     st.write(f"• {ing}: **{peso:,.1f}g**")
                     compras[ing] = compras.get(ing, 0) + peso
             
-            with col_b:
-                if m_data['tangzhong']:
-                    st.subheader("⚡ Tangzhong")
-                    tz_h = h_base * m_data['tangzhong']['ratio_harina']
-                    tz_l = tz_h * m_data['tangzhong']['relacion_liquido']
-                    st.warning(f"Harina: {tz_h:,.1f}g | Leche: {tz_l:,.1f}g")
-                    st.info(f"Relación 1:{m_data['tangzhong']['relacion_liquido']}")
-            
-            # Extras
+            with c_der:
+                st.subheader("📝 SOP / Puntos Críticos")
+                for paso in m_data['procedimiento']:
+                    st.write(paso)
+                
+                if "huesos_reforzados" in m_data:
+                    reserva = masa_total * m_data['huesos_reforzados']['reserva_masa_porc']
+                    h_ex = reserva * m_data['huesos_reforzados']['harina_extra_porc']
+                    y_ex = reserva * m_data['huesos_reforzados']['yema_extra_porc']
+                    st.warning(f"🦴 Huesos: Reforzar {reserva:,.1f}g de masa con {h_ex:,.1f}g harina y {y_ex:,.1f}g yema.")
+                    compras["Harina de fuerza"] = compras.get("Harina de fuerza", 0) + h_ex
+                    compras["Yemas"] = compras.get("Yemas", 0) + y_ex
+
             if item['extra'] != "Ninguno":
-                st.subheader(f"Extra: {item['extra']}")
-                ex_data = TOPPINGS_RELLENOS[item['extra']]
-                peso_ex_total = ex_data['unitario'] * item['cant']
-                sum_ex = sum(ex_data['receta'].values())
-                f_ex = peso_ex_total / sum_ex if sum_ex > 0 else 0
-                for ing, val in ex_data['receta'].items():
-                    peso = val * f_ex
-                    st.write(f"• {ing}: **{peso:,.1f}g**")
-                    compras[ing] = compras.get(ing, 0) + peso
-            st.write("---")
+                st.subheader(f"✨ Acabado: {item['extra']}")
+                ex_data = ACABADOS[item['extra']]
+                # Lógica para rebozado o lágrima
+                if "Rebozado" in item['extra']:
+                    for ing, g_p in ex_data['receta'].items():
+                        peso = g_p * item['cant']
+                        st.write(f"• {ing}: **{peso:,.1f}g**")
+                        compras[ing] = compras.get(ing, 0) + peso
+                else: # Lógica para lágrima de concha
+                    peso_l_total = (ex_data['unitario'] if "Estándar" in item['tamaño'] else ex_data['mini']) * item['cant']
+                    factor_l = peso_l_total / sum(ex_data['receta'].values())
+                    for ing, val in ex_data['receta'].items():
+                        peso = val * factor_l
+                        st.write(f"• {ing}: **{peso:,.1f}g**")
+                        compras[ing] = compras.get(ing, 0) + peso
+            st.divider()
 
     with t3:
         st.header("🛒 Lista Maestra de Insumos")
