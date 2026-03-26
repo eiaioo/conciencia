@@ -4,7 +4,7 @@ import pandas as pd
 st.set_page_config(page_title="CONCIENCIA - Sistema Maestro", layout="wide")
 
 # ==========================================
-# 1. BASE DE DATOS TÉCNICA DEFINITIVA
+# 1. BASE DE DATOS TÉCNICA
 # ==========================================
 
 DB_MASAS = {
@@ -102,7 +102,7 @@ with st.expander("📝 Cargar Nuevo Producto", expanded=True):
 
 if st.session_state.comanda:
     if st.button("🗑️ Limpiar Todo"): st.session_state.comanda = []; st.rerun()
-    t_pes, t_sup = st.tabs(["🥣 Hoja de Producción", "📦 Lista Maestra"])
+    t_pes, t_sup = st.tabs(["🥣 Hoja de Producción", "📦 Lista Maestra (Checklist)"])
     master_inv = {}
 
     lotes_masa = {}
@@ -115,7 +115,6 @@ if st.session_state.comanda:
         for m_id, items in lotes_masa.items():
             m_dna = DB_MASAS[m_id]
             st.markdown(f"## 🛠️ Lote: {m_id}")
-            
             batch_masa_gr = 0
             for i in items:
                 p_u = ARBOL[i['fam']].get("override_p", {}).get(i['esp'], (ARBOL[i['fam']]['tamaños'][i['tam']], 0))[0]
@@ -133,27 +132,23 @@ if st.session_state.comanda:
             cols = st.columns(1 + len(sabores_batch))
             with cols[0]:
                 st.info(f"**🥣 MASA (Total: {batch_masa_gr:,.1f}g)**")
-                if m_dna.get("fijo"):
-                    for ing, val in m_dna.items():
-                        if isinstance(val, (int, float)) and "_" not in ing and ing != "merma" and ing != "fijo":
-                            total = val * sum(it['cant'] for it in items)
-                            st.write(f"• {ing}: {total:,.1f}g")
-                            master_inv[ing] = master_inv.get(ing, 0) + total
-                else:
-                    for ing, porc in m_dna.items():
-                        if isinstance(porc, (int, float)) and "_" not in ing and ing != "merma" and ing != "factor":
-                            gr = (porc * h_base) / 100; st.write(f"• {ing}: **{gr:,.1f}g**")
-                            master_inv[ing] = master_inv.get(ing, 0) + gr
-                    if "tz_ratio" in m_dna: st.warning(f"⚡ TZ: {(h_base*m_dna['tz_ratio']):,.1f}g H / {(h_base*m_dna['tz_ratio']*m_dna['tz_liq']):,.1f}g L")
-                    if "tz_fijo_h" in m_dna:
-                        f_tz = h_base / 1000
-                        st.warning(f"⚡ TZ: {(m_dna['tz_fijo_h']*f_tz):,.1f}g H / {(m_dna['tz_fijo_l']*f_tz):,.1f}g L")
+                for ing, porc in m_dna.items():
+                    if isinstance(porc, (int, float)) and "_" not in ing and ing != "merma" and ing != "factor":
+                        gr = (porc * h_base) / 100; st.write(f"• {ing}: **{gr:,.1f}g**")
+                        master_inv[ing] = master_inv.get(ing, 0) + gr
+                if "tz_ratio" in m_dna: st.warning(f"⚡ TZ: {(h_base*m_dna['tz_ratio']):,.1f}g H / {(h_base*m_dna['tz_ratio']*m_dna['tz_liq']):,.1f}g L")
+                if "tz_fijo_h" in m_dna:
+                    f_tz = h_base / 1000
+                    st.warning(f"⚡ TZ: {(m_dna['tz_fijo_h']*f_tz):,.1f}g H / {(m_dna['tz_fijo_l']*f_tz):,.1f}g L")
+                if m_dna.get("huesos_refuerzo"):
+                    r = batch_masa_gr * 0.25; st.info(f"🦴 Huesos: +{r*0.3:,.1f}g H / +{r*0.1:,.1f}g Y")
+                    master_inv["Harina de fuerza"] = master_inv.get("Harina de fuerza", 0) + (r*0.3)
+                    master_inv["Yemas"] = master_inv.get("Yemas", 0) + (r*0.1)
 
             for idx, ((e_name, r_name, t_name), s_items) in enumerate(sabores_batch.items()):
                 with cols[idx+1]:
                     tot_p = sum(si['cant'] for si in s_items)
                     st.success(f"✨ **{e_name} ({t_name})**")
-                    
                     cfg = ARBOL[s_items[0]['fam']]
                     list_subs = []
                     base_espec = cfg["espec"][e_name]
@@ -167,20 +162,5 @@ if st.session_state.comanda:
                         elif s_items[0]['fam'] == "Conchas": p_u_ex = cfg["p_ex"][t_name]
                         elif "override_p" in cfg and e_name in cfg["override_p"]: p_u_ex = cfg["override_p"][e_name][1].get(sub_id, 15)
                         else: p_u_ex = 15
-                        
                         p_batch_sub = p_u_ex * tot_p
                         st.markdown(f"**{sub_id} (Total: {p_batch_sub:,.1f}g)**")
-                        
-                        fact = p_batch_sub / sum([v for v in s_rec.values() if isinstance(v, (int, float))])
-                        for ing, val in s_rec.items():
-                            if "Cabeza" in ing:
-                                st.write(f"- {ing}: {val*tot_p} pz"); master_inv[ing] = master_inv.get(ing, 0) + (val*tot_p)
-                            else:
-                                gr_sub = val * (tot_p if "Rebozado" in sub_id or "Decoración" in sub_id else fact)
-                                st.write(f"- {ing}: {gr_sub:,.1f}g"); master_inv[ing] = master_inv.get(ing, 0) + gr_sub
-            st.divider()
-
-    with t_sup:
-        st.header("🛒 Lista Maestra")
-        df_sum = pd.DataFrame(master_inv.items(), columns=["Insumo", "Cantidad"]).round(1)
-        st.dataframe(df_sum.sort_values("Insumo"), hide_index=True, use_container_width=True)
