@@ -4,7 +4,7 @@ import pandas as pd
 st.set_page_config(page_title="CONCIENCIA - Sistema Maestro", layout="wide")
 
 # ==========================================
-# 1. BASE DE DATOS TÉCNICA (DNA)
+# 1. BASE DE DATOS TÉCNICA
 # ==========================================
 
 DB_MASAS = {
@@ -48,14 +48,14 @@ ARBOL = {
 }
 
 # ==========================================
-# 2. LÓGICA DE INTERFAZ
+# 2. INTERFAZ
 # ==========================================
 
 if 'comanda' not in st.session_state: st.session_state.comanda = []
 if 'form_id' not in st.session_state: st.session_state.form_id = 0
 if 'exp' not in st.session_state: st.session_state.exp = True
 
-st.title("🥐 Gestión Técnica CONCIENCIA v12.0")
+st.title("🥐 Gestión Técnica CONCIENCIA v13.0")
 
 with st.expander("📝 Cargar Nuevo Producto", expanded=st.session_state.exp):
     f = st.selectbox("1. Familia", ["-"] + list(ARBOL.keys()), key=f"f_{st.session_state.form_id}")
@@ -74,7 +74,7 @@ if not st.session_state.exp:
     if st.button("➕ Agregar otro"): st.session_state.exp = True; st.rerun()
 
 # ==========================================
-# 3. PROCESAMIENTO Y AGRUPACIÓN
+# 3. LÓGICA DE AGRUPACIÓN POR MASA MADRE
 # ==========================================
 
 if st.session_state.comanda:
@@ -82,78 +82,97 @@ if st.session_state.comanda:
     st.table(pd.DataFrame(st.session_state.comanda))
     if st.button("🗑️ Limpiar Todo"): st.session_state.comanda = []; st.session_state.exp = True; st.rerun()
 
-    t_hoja, t_super = st.tabs(["🥣 Hoja de Producción Agrupada", "📦 Lista Maestra"])
+    t_hoja, t_super = st.tabs(["🥣 Hoja de Producción (Batidos)", "📦 Lista de Insumos"])
     resumen_insumos = {}
 
-    # AGRUPAR: (Familia, Tamaño, Masa_ID) -> Lista de Sabores y Cantidades
-    lotes = {}
+    # AGRUPAR POR MASA_ID: 
+    # { "Masa_ID": [lista de items que la usan] }
+    lotes_masa = {}
     for item in st.session_state.comanda:
         config = ARBOL[item['fam']]
         m_id = config.get("override", {}).get(item['sab'], config['masa'])
-        key = (item['fam'], item['tam'], m_id)
-        if key not in lotes: lotes[key] = []
-        lotes[key].append(item)
+        if m_id not in lotes_masa: lotes_masa[m_id] = []
+        lotes_masa[m_id].append(item)
 
     with t_hoja:
-        for (fam, tam, m_id), items in lotes.items():
-            total_cant = sum(i['cant'] for i in items)
+        for m_id, items in lotes_masa.items():
             m_dna = DB_MASAS[m_id]
-            st.header(f"📦 Lote: {fam} {tam} (Total: {total_cant} piezas)")
             
-            # Definir número de columnas: 1 para masa + N para sabores
-            cols = st.columns(1 + len(items))
+            # 1. CALCULAR MASA TOTAL DEL BATCH (Sumando todos los tamaños y cantidades)
+            masa_total_batch = 0
+            for i in items:
+                p_u = ARBOL[i['fam']].get("p_manual", {}).get(i['sab'], (ARBOL[i['fam']]['tamaños'][i['tam']], 0))[0]
+                masa_total_batch += (p_u * i['cant']) / m_dna['merma']
             
-            # --- COLUMNA 1: MASA (AGRUPADA) ---
+            h_base_batch = (masa_total_batch * 100) / sum([v for k,v in m_dna.items() if isinstance(v, (int, float)) and k != "merma"])
+
+            # 2. RENDERIZAR BLOQUE DE MASA
+            st.markdown(f"## 🛠️ Lote de Masa: {m_id.replace('_',' ')}")
+            
+            # Mostrar resumen de división
+            division_str = " | ".join([f"{i['cant']}x {i['tam']} ({i['sab']})" for i in items])
+            st.caption(f"**Destino:** {division_str}")
+
+            # Diseño de Columnas: 1 para Masa, el resto para Complementos específicos
+            n_cols = 1 + len(items)
+            cols = st.columns(n_cols)
+
             with cols[0]:
-                st.info("**🥣 MASA TOTAL**")
+                st.info("**🥣 RECETA DEL BATIDO**")
                 if m_dna.get("fijo"):
                     for ing, val in m_dna.items():
                         if ing not in ["merma", "fijo"]:
-                            gr = val * total_cant; st.write(f"• {ing}: {gr:,.1f}g")
-                            resumen_insumos[ing] = resumen_insumos.get(ing, 0) + gr
+                            total = val * sum(i['cant'] for i in items)
+                            st.write(f"• {ing}: **{total:,.1f}g**")
+                            resumen_insumos[ing] = resumen_insumos.get(ing, 0) + total
                 else:
-                    # Usamos el peso del primer item como base (o manual si existe)
-                    p_u = ARBOL[fam].get("p_manual", {}).get(items[0]['sab'], (ARBOL[fam]['tamaños'][tam],0))[0]
-                    m_tot = (p_u * total_cant) / m_dna['merma']
-                    h_base = (m_tot * 100) / sum([v for k,v in m_dna.items() if isinstance(v, (int, float)) and k != "merma"])
-                    
-                    for ing, val in m_dna.items():
-                        if isinstance(val, (int, float)) and ing != "merma":
-                            gr = (val * h_base) / 100; st.write(f"• {ing}: **{gr:,.1f}g**")
+                    for ing, porc in m_dna.items():
+                        if isinstance(porc, (int, float)) and ing != "merma":
+                            gr = (porc * h_base_batch) / 100
+                            st.write(f"• {ing}: **{gr:,.1f}g**")
                             resumen_insumos[ing] = resumen_insumos.get(ing, 0) + gr
                     
                     if "tz" in m_dna:
-                        st.warning(f"⚡ TZ: {h_base*m_dna['tz'][0]:,.1f}g H / {h_base*m_dna['tz'][0]*m_dna['tz'][1]:,.1f}g L")
+                        st.warning(f"⚡ TZ 1:5: {h_base_batch*m_dna['tz'][0]:,.1f}g H / {h_base_batch*m_dna['tz'][0]*m_dna['tz'][1]:,.1f}g L")
                     if "tz_fijo" in m_dna:
-                        f = h_base / 1000
-                        st.warning(f"⚡ TZ: {m_dna['tz_fijo'][0]*f:,.1f}g H / {m_dna['tz_fijo'][1]*f:,.1f}g L")
+                        f = h_base_batch / 1000
+                        st.warning(f"⚡ TZ 70/350: {m_dna['tz_fijo'][0]*f:,.1f}g H / {m_dna['tz_fijo'][1]*f:,.1f}g L")
+                    if m_dna.get("huesos"):
+                        res = masa_total_batch * 0.25
+                        st.info(f"🦴 Refuerzo Huesos: +{res*0.3:,.1f}g Harina / +{res*0.1:,.1f}g Yema")
+                        resumen_insumos["Harina Extra"] = resumen_insumos.get("Harina Extra", 0) + (res*0.3)
+                        resumen_insumos["Yemas Extra"] = resumen_insumos.get("Yemas Extra", 0) + (res*0.1)
 
-            # --- COLUMNAS SIGUIENTES: COMPLEMENTOS POR SABOR ---
+            # 3. RENDERIZAR COMPLEMENTOS (Uno por cada item de la comanda)
             for idx, item in enumerate(items):
                 with cols[idx+1]:
-                    st.success(f"✨ **{item['cant']}x {item['sab']}**")
-                    subs = ARBOL[fam]["sabores"][item['sab']]
+                    st.success(f"✨ **Complementos {item['tam']}**")
+                    st.write(f"Sabor: *{item['sab']}*")
+                    
+                    subs = ARBOL[item['fam']]["sabores"][item['sab']]
                     for sub_id in subs:
-                        st.write(f"**{sub_id}**")
+                        st.write(f"**{sub_id.replace('_',' ')}**")
                         s_rec = DB_COMPLEMENTOS[sub_id]
                         
-                        if "p_manual" in ARBOL[fam] and item['sab'] in ARBOL[fam]["p_manual"]:
-                            p_sub_tot = ARBOL[fam]["p_manual"][item['sab']][1].get(sub_id, 0) * item['cant']
+                        # Cálculo de peso sub-receta
+                        if "p_manual" in ARBOL[item['fam']] and item['sab'] in ARBOL[item['fam']]["p_manual"]:
+                            p_sub_tot = ARBOL[item['fam']]["p_manual"][item['sab']][1].get(sub_id, 0) * item['cant']
                         else:
-                            p_u_s = ARBOL[fam].get("p_ex", {}).get(tam, ARBOL[fam].get("p_ex", 0))
-                            p_sub_tot = p_u_s * item['cant']
+                            p_u_sub = ARBOL[item['fam']].get("p_ex", {}).get(item['tam'], ARBOL[item['fam']].get("p_ex", 0))
+                            p_sub_tot = p_u_sub * item['cant']
 
-                        f_sub = p_sub_tot / sum([v for v in s_rec.values() if isinstance(v, (int, float))])
+                        factor = p_sub_tot / sum([v for v in s_rec.values() if isinstance(v, (int, float))])
                         for ing, val in s_rec.items():
                             if "Cabeza" in ing:
-                                st.write(f"- {ing}: {val*item['cant']} pzas")
+                                st.write(f"- {ing}: {val*item['cant']} pz")
                                 resumen_insumos[ing] = resumen_insumos.get(ing, 0) + (val*item['cant'])
                             else:
-                                gr = val * f_sub; st.write(f"- {ing}: {gr:,.1f}g")
+                                gr = val * factor; st.write(f"- {ing}: {gr:,.1f}g")
                                 resumen_insumos[ing] = resumen_insumos.get(ing, 0) + gr
             st.divider()
 
     with t_super:
         st.header("🛒 Lista Maestra")
-        df = pd.DataFrame(resumen_insumos.items(), columns=["Insumo", "Total"]).sort_values("Insumo")
-        st.table(df)
+        df_sum = pd.DataFrame(resumen_insumos.items(), columns=["Insumo", "Cantidad Total"]).sort_values("Insumo")
+        st.table(df_sum)
+        
