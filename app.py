@@ -4,182 +4,212 @@ import pandas as pd
 st.set_page_config(page_title="CONCIENCIA - Sistema Maestro", layout="wide")
 
 # ==========================================
-# 1. BASE DE DATOS TÉCNICA (DNA CONCIENCIA)
+# 1. BASE DE DATOS MAESTRA (DNA TÉCNICO)
 # ==========================================
 
-# Definimos los panes y sus árboles de decisión
-ESTRUCTURA_PRODUCTOS = {
+# RECETAS DE MASAS (% Panadero)
+DB_MASAS = {
     "Conchas": {
-        "sabores": ["Vainilla", "Chocolate", "Matcha", "Fresa", "Mazapán Estándar", "Mazapán Intenso", "Oreo", "Pinole"],
-        "tamaños": {"Estándar": 95, "Mini": 35},
-        "rellenos": ["Sin Relleno"],
-        "masa_id": "Masa_Concha",
-        "factor_masa": 1.963
+        "receta": {"Harina": 100, "Huevo": 40, "Leche": 24, "Azúcar": 30, "Mantequilla": 40, "Sal": 2.5, "Levadura seca": 1.8, "Vainilla": 2},
+        "merma": 1.0, "factor_panadero": 1.963
     },
     "Berlinas": {
-        "sabores": ["Ruby v2.0", "Conejo Turín", "Vainilla Clásica", "Chocolate Amargo"],
-        "tamaños": {"Estándar": 60}, # Ruby se ajusta a 70g en lógica
-        "rellenos": ["Relleno según Ficha"], 
-        "masa_id": "Masa_Berlina"
+        "receta": {"Harina de fuerza": 100, "Azúcar": 22, "Mantequilla": 20, "Huevo": 25, "Leche": 22, "Sal": 1.8, "Levadura seca": 1.0},
+        "merma": 0.85, "tz": {"h_ratio": 0.05, "l_ratio": 5}
     },
-    "Rollos": {
-        "sabores": ["Tradicional (Canela)", "Manzana", "Conejo Turín", "Red Velvet Premium"],
-        "tamaños": {"Individual": 90},
-        "rellenos": ["Schmear según Ficha"],
-        "masa_id": "Masa_Rol"
+    "Roles Gourmet": {
+        "receta": {"Harina de fuerza": 93, "Huevo": 30, "Leche": 5, "Levadura fresca": 1, "Sal": 1.8, "Azúcar": 16, "Mantequilla": 17},
+        "merma": 1.0, "tz": {"h_gr": 70, "l_gr": 350, "base": 1000}
     },
-    "Rosca de reyes": {
-        "sabores": ["Tradicional", "Vainilla", "Chocolate Amargo", "Línea Turín"],
-        "tamaños": {"Mediana": 900, "Individual": 100},
-        "rellenos": ["Sin Relleno", "Rellena"],
-        "masa_id": "Masa_Rosca"
+    "Roles Red Velvet": {
+        "receta": {"Harina de fuerza": 100, "Azúcar": 16, "Mantequilla": 17, "Huevo": 30, "Leche": 4, "Sal": 1.8, "Levadura": 1, "Cacao": 0.8, "Rojo": 0.7, "Vinagre": 0.3},
+        "merma": 1.0, "tz": {"h_ratio": 0.07, "l_ratio": 5}
     },
-    "Pan de muerto": {
-        "sabores": ["Tradicional (Naranja/Azahar)", "Guayaba (Huesos Reforzados)"],
-        "tamaños": {"Estándar": 85}, # Guayaba se ajusta a 95g
-        "rellenos": ["Sin Relleno", "Crema Vainilla", "Crema Chocolate", "Crema Turín"],
-        "masa_id": "Masa_Muerto"
+    "Pan de Muerto Tradicional": {
+        "receta": {"Harina": 100, "Leche": 25, "Yemas": 24, "Claras": 16, "Azúcar": 20, "Mantequilla": 25, "Sal": 2, "Levadura fresca": 3, "Azahar": 2, "Ralladura Naranja": 1},
+        "merma": 1.0
+    },
+    "Pan de Muerto Guayaba": {
+        "receta": {"Harina": 100, "Leche": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla": 25, "Levadura fresca": 5, "Sal": 1.8, "Polvo Guayaba": 5},
+        "merma": 1.0, "huesos_refuerzo": True
     },
     "Brownies": {
-        "sabores": ["Turín Clásico"],
-        "tamaños": {"Molde 20x20": 1},
-        "rellenos": ["N/A"],
-        "masa_id": "Masa_Brownie"
+        "receta": {"Mantequilla avellana": 330, "Azúcar Blanca": 275, "Mascabado": 120, "Chocolate": 165, "Harina": 190, "Cocoa": 75, "Sal": 8, "Claras": 160, "Yemas": 95, "Vainilla": 8, "Nuez": 140},
+        "merma": 1.0, "fijo": True
     }
 }
 
-# --- DATOS DE INGREDIENTES ---
-MASAS_DNA = {
-    "Masa_Concha": {"Harina": 100, "Huevo": 40, "Leche": 24, "Azúcar": 30, "Mantequilla": 40, "Sal": 2.5, "Levadura seca": 1.8, "Vainilla": 2},
-    "Masa_Berlina": {"Harina de fuerza": 100, "Azúcar": 22, "Mantequilla": 20, "Huevo": 25, "Leche": 22, "Sal": 1.8, "Levadura seca": 1.0, "__merma": 0.85, "__tz": (0.05, 5)},
-    "Masa_Rol": {"Harina de fuerza": 93, "Huevo": 30, "Leche": 5, "Levadura fresca": 1, "Sal": 1.8, "Azúcar": 16, "Mantequilla": 17, "__tz": (70/1000, 5)},
-    "Masa_RV": {"Harina": 100, "Azúcar": 16, "Mantequilla": 17, "Huevo": 30, "Leche": 4, "Sal": 1.8, "Levadura": 1, "Cacao": 0.8, "Rojo": 0.7, "Vinagre": 0.3},
-    "Masa_Rosca": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla": 30, "Huevo": 20, "Yema": 4, "Leche": 24, "Levadura": 0.35, "Sal": 2.2, "Agua Azahar": 0.6, "__tz": (0.025, 1)},
-    "Masa_Muerto": {"Harina": 100, "Leche": 25, "Yemas": 24, "Claras": 16, "Azúcar": 20, "Mantequilla": 25, "Sal": 2, "Levadura": 3, "Azahar": 2},
-    "Masa_Muerto_Guayaba": {"Harina": 100, "Leche": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla": 25, "Levadura": 5, "Sal": 1.8, "Guayaba": 5, "__huesos": True},
-    "Masa_Brownie": {"Mantequilla": 330, "Azúcar Blanca": 275, "Mascabado": 120, "Chocolate": 165, "Harina": 190, "Cocoa": 75, "Sal": 8, "Claras": 160, "Yemas": 95, "Vainilla": 8, "Nuez": 140}
+# RECETAS DE COMPLEMENTOS (Por pieza o % según tipo)
+DB_COMPLEMENTOS = {
+    # LÁGRIMAS CONCHA (Basado en Harina=100)
+    "L_Vainilla": {"Harina": 100, "Azúcar Glass": 100, "Mantequilla": 100},
+    "L_Chocolate": {"Harina": 87.5, "Cacao": 12.5, "Azúcar Glass": 100, "Mantequilla": 100},
+    "L_Matcha": {"Harina": 91.5, "Matcha": 8.5, "Azúcar Glass": 100, "Mantequilla": 100},
+    "L_Pinole": {"Harina": 79, "Pinole": 21, "Azúcar Glass": 100, "Mantequilla": 100},
+    "L_Mazapán_I": {"Harina": 100, "Azúcar Glass": 100, "Mantequilla": 100, "Mazapán": 66},
+    "L_Oreo": {"Harina": 100, "Azúcar Glass": 75, "Mantequilla": 100, "Oreo": 25},
+    # RELLENOS Y ACABADOS
+    "C_Ruby": {"Leche": 131.5, "Crema 35": 131.5, "Yemas": 53, "Azúcar": 63, "Fécula": 24, "Mantequilla": 16, "Sal": 0.8},
+    "G_Ruby": {"Chocolate Ruby": 80, "Azúcar Glass": 160, "Leche": 50},
+    "C_Turín_Leche": {"Leche": 450, "Yemas": 100, "Azúcar": 90, "Fécula": 45, "Choco Turín": 120, "Mantequilla": 20},
+    "G_Turín_Costra": {"Azúcar Glass": 200, "Choco Cuerpos": 100, "Leche": 50, "Sal": 1, "Cabeza Conejo": 1},
+    "C_Vainilla_SOP": {"Leche": 500, "Yemas": 100, "Azúcar": 120, "Fécula": 45, "Mantequilla": 30, "Sal": 1.5, "Vainilla": 6},
+    "Schmear_Canela": {"Mantequilla": 200, "Azúcar Mascabado": 300, "Canela": 25, "Maicena": 20},
+    "Schmear_RV": {"Mantequilla": 6, "Azúcar": 6, "Cacao": 1.8, "Maicena": 0.6, "Nuez": 4, "Chocolate": 4},
+    "I_Frutos_Rojos": {"Pasas+Arandanos": 8, "Te Earl Grey": 2},
+    "I_Manzana": {"Orejón Manzana": 8, "Agua tibia": 2},
+    "Rebozado_Muerto": {"Mantequilla baño": 6.5, "Azúcar rebozo": 12.5}
+}
+
+# CONFIGURACIÓN JERÁRQUICA DE PRODUCTOS
+CATALOGO_TECNICO = {
+    "Conchas": {
+        "variantes": {"Vainilla": ["L_Vainilla"], "Chocolate": ["L_Chocolate"], "Matcha": ["L_Matcha"], "Pinole": ["L_Pinole"], "Mazapán Intenso": ["L_Mazapán_I"], "Oreo": ["L_Oreo"]},
+        "tamaños": {"Estándar": 95, "Mini": 35},
+        "peso_ex_u": {"Estándar": 30, "Mini": 10}
+    },
+    "Berlinas": {
+        "variantes": {
+            "Ruby v2.0": ["C_Ruby", "G_Ruby"], 
+            "Conejo Turín": ["C_Turín_Leche", "G_Turín_Costra"],
+            "Vainilla Clásica": ["C_Vainilla_SOP"]
+        },
+        "tamaños": {"Estándar": 60}, # Ruby se ajusta a 70g en la lógica de pesado
+        "pesos_fijos": {"Ruby v2.0": 70} 
+    },
+    "Rollos": {
+        "variantes": {
+            "Tradicional (Canela)": ["Schmear_Canela", "I_Frutos_Rojos"],
+            "Manzana Canela": ["Schmear_Canela", "I_Manzana"],
+            "Red Velvet Premium": ["Schmear_RV"]
+        },
+        "tamaños": {"Individual": 90}
+    },
+    "Pan de muerto": {
+        "variantes": {"Tradicional": ["Rebozado_Muerto"], "Guayaba": ["Rebozado_Muerto"]},
+        "tamaños": {"Estándar": 85, "Grande": 500},
+        "rellenos_extra": ["Sin Relleno", "C_Vainilla_SOP", "C_Turín_Leche"]
+    },
+    "Brownies": {
+        "variantes": {"Turín Clásico": []},
+        "tamaños": {"Molde 12 pzas": 1}
+    }
 }
 
 # ==========================================
-# 2. LÓGICA DE INTERFAZ (FLUJO POR PASOS)
+# 2. INTERFAZ (ORDEN DE COMPRA)
 # ==========================================
 
-if 'comanda' not in st.session_state:
-    st.session_state.comanda = []
+if 'pedido' not in st.session_state: st.session_state.pedido = []
 
-st.title("🥐 Comanda Técnica CONCIENCIA")
+st.title("🥐 Gestión de Producción - CONCIENCIA")
 
-with st.expander("➕ Agregar Nuevo Pan a la Producción", expanded=True):
-    # PASO 1: Familia de Pan
-    pan_tipo = st.selectbox("1. Tipo de Pan", ["Selecciona..."] + list(ESTRUCTURA_PRODUCTOS.keys()))
+with st.expander("📝 Cargar Nuevo Producto", expanded=True):
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        fam_sel = st.selectbox("1. Familia", list(CATALOGO_TECNICO.keys()))
+    with col2:
+        var_sel = st.selectbox("2. Variante / Sabor", list(CATALOGO_TECNICO[fam_sel]["variantes"].keys()))
+    with col3:
+        tam_sel = st.selectbox("3. Tamaño", list(CATALOGO_TECNICO[fam_sel]["tamaños"].keys()))
+    with col4:
+        cant_sel = st.number_input("4. Cantidad", min_value=1, value=12)
     
-    if pan_tipo != "Selecciona...":
-        datos = ESTRUCTURA_PRODUCTOS[pan_tipo]
-        
-        # PASO 2: Sabor
-        sabor_sel = st.selectbox(f"2. Sabor de {pan_tipo}", datos["sabores"])
-        
-        # PASO 3: Tamaño
-        tamano_sel = st.selectbox("3. Tamaño / Presentación", list(datos["tamaños"].keys()))
-        
-        # PASO 4: Relleno (si aplica)
-        relleno_sel = "N/A"
-        if len(datos["rellenos"]) > 1 or datos["rellenos"][0] == "Rellena":
-            relleno_sel = st.selectbox("4. Opción de Relleno", datos["rellenos"])
-        
-        # PASO 5: Cantidad
-        cant = st.number_input("5. Número de piezas", min_value=1, value=1, step=1)
-        
-        # BOTÓN FINAL
-        if st.button("✅ AGREGAR A LA COMANDA"):
-            st.session_state.comanda.append({
-                "pan": pan_tipo,
-                "sabor": sabor_sel,
-                "tamano": tamano_sel,
-                "relleno": relleno_sel,
-                "cantidad": cant
-            })
-            st.success(f"{pan_tipo} agregado correctamente.")
-            st.rerun()
+    rell_sel = "N/A"
+    if "rellenos_extra" in CATALOGO_TECNICO[fam_sel]:
+        rell_sel = st.selectbox("5. Relleno Opcional", CATALOGO_TECNICO[fam_sel]["rellenos_extra"])
 
-# ==========================================
-# 3. VISUALIZACIÓN DE LA COMANDA
-# ==========================================
-
-st.subheader("📋 Comanda del Día")
-if st.session_state.comanda:
-    df_comanda = pd.DataFrame(st.session_state.comanda)
-    st.table(df_comanda)
-    if st.button("🗑️ Limpiar Todo el Día"):
-        st.session_state.comanda = []
+    if st.button("➕ AGREGAR A PRODUCCIÓN"):
+        st.session_state.pedido.append({
+            "familia": fam_sel, "variante": var_sel, "tamaño": tam_sel, 
+            "cantidad": cant_sel, "relleno": rell_sel
+        })
         st.rerun()
 
-    # ==========================================
-    # 4. LÓGICA DE CÁLCULO (TRAS BAMBALINAS)
-    # ==========================================
-    almacen_total = {}
+# ==========================================
+# 3. HOJA DE TRABAJO (CÁLCULOS)
+# ==========================================
 
-    def sumar(ing, g):
-        almacen_total[ing] = almacen_total.get(ing, 0) + g
+st.divider()
+if st.session_state.pedido:
+    if st.button("🗑️ Limpiar Plan"): st.session_state.pedido = []; st.rerun()
+    
+    t_hoja, t_compras = st.tabs(["🥣 Hoja de Producción (Detalle)", "📦 Lista Maestra de Insumos"])
+    total_almacen = {}
 
-    t_recetas, t_super = st.tabs(["🥣 Hoja de Producción (Pesado)", "📦 Lista Maestra de Insumos"])
-
-    with t_recetas:
-        for item in st.session_state.comanda:
-            st.write(f"### {item['cantidad']}x {item['pan']} ({item['sabor']})")
+    with t_hoja:
+        for item in st.session_state.pedido:
+            st.subheader(f"PRODUCCIÓN: {item['cantidad']}x {item['variante']} ({item['tamaño']})")
             
-            # -- Lógica de Selección de Masa --
-            masa_key = ESTRUCTURA_PRODUCTOS[item['pan']]["masa_id"]
-            if item['sabor'] == "Red Velvet Premium": masa_key = "Masa_RV"
-            if item['sabor'] == "Guayaba (Huesos Reforzados)": masa_key = "Masa_Muerto_Guayaba"
+            # --- LÓGICA DE MASA (COLUMNA 1) ---
+            m_id = item['familia']
+            if item['variante'] == "Red Velvet Premium": m_id = "Roles Red Velvet"
+            elif item['variante'] == "Guayaba": m_id = "Pan de Muerto Guayaba"
+            elif item['familia'] == "Pan de muerto" and item['variante'] == "Tradicional": m_id = "Pan de Muerto Tradicional"
             
-            m_dna = MASAS_DNA[masa_key]
+            m_dna = DB_MASAS[m_id]
+            peso_u = CATALOGO_TECNICO[item['familia']].get("pesos_fijos", {}).get(item['variante'], CATALOGO_TECNICO[item['familia']]["tamaños"][item['tamaño']])
             
-            # Peso y Masa Total
-            peso_unitario = ESTRUCTURA_PRODUCTOS[item['pan']]["tamaños"][item['tamano']]
-            if item['sabor'] == "Ruby v2.0": peso_unitario = 70
-            if item['sabor'] == "Guayaba (Huesos Reforzados)": peso_unitario = 95
+            c1, c2 = st.columns(2)
             
-            # Merma
-            merma = m_dna.get("__merma", 1.0)
-            masa_total = (peso_unitario * item['cantidad']) / merma
+            with c1:
+                st.info("📦 **COLUMNA 1: MASA**")
+                if m_dna.get("fijo"):
+                    for ing, val in m_dna["receta"].items():
+                        total_g = val * item['cantidad']
+                        st.write(f"• {ing}: **{total_g:,.1f}g**")
+                        total_almacen[ing] = total_almacen.get(ing, 0) + total_g
+                else:
+                    masa_total = (peso_u * item['cantidad']) / m_dna["merma"]
+                    h_total = (masa_total * 100) / sum(m_dna["receta"].values())
+                    
+                    for ing, porc in m_dna["receta"].items():
+                        gr = (porc * h_total) / 100
+                        st.write(f"• {ing}: **{gr:,.1f}g**")
+                        total_almacen[ing] = total_almacen.get(ing, 0) + gr
+                    
+                    if "tz" in m_dna:
+                        st.warning("**⚡ Tangzhong:**")
+                        if "h_gr" in m_dna["tz"]:
+                            factor_tz = h_total / m_dna["tz"]["base"]
+                            st.write(f"- Harina: {m_dna['tz']['h_gr']*factor_tz:,.1f}g | Leche: {m_dna['tz']['l_gr']*factor_tz:,.1f}g")
+                        else:
+                            tz_h = h_total * m_dna["tz"]["h_ratio"]
+                            st.write(f"- Harina: {tz_h:,.1f}g | Leche: {tz_h*m_dna['tz']['l_ratio']:,.1f}g")
             
-            # Harina Base (100%)
-            sum_porcentajes = sum([v for k,v in m_dna.items() if not k.startswith("__")])
-            h_base = (masa_total * 100) / sum_porcentajes
-
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("**Masa:**")
-                for ing, val in m_dna.items():
-                    if not ing.startswith("__"):
-                        gr = (val * h_base) / 100
-                        st.write(f"- {ing}: {gr:,.1f}g")
-                        sumar(ing, gr)
-            
-            with col2:
-                # Tangzhong
-                if "__tz" in m_dna:
-                    st.write("**⚡ Tangzhong:**")
-                    tz_h = h_base * m_dna["__tz"][0]
-                    tz_l = tz_h * m_dna["__tz"][1]
-                    st.warning(f"Harina: {tz_h:,.1f}g / Leche: {tz_l:,.1f}g")
-                    # (Ya sumados en harina/leche total)
+            with c2:
+                st.success("✨ **COLUMNA 2: COMPLEMENTOS**")
+                # Jalar lista de sub-recetas
+                subs = CATALOGO_TECNICO[item['familia']]["variantes"][item['variante']]
+                if item['relleno'] != "N/A" and item['relleno'] != "Sin Relleno":
+                    subs.append(item['relleno'])
                 
-                # Huesos refuerzo
-                if "__huesos" in m_dna:
-                    h_ex = masa_total * 0.25 * 0.30
-                    y_ex = masa_total * 0.25 * 0.10
-                    st.info(f"🦴 Refuerzo Huesos: +{h_ex:,.1f}g Harina / +{y_ex:,.1f}g Yema")
-                    sumar("Harina Refuerzo", h_ex)
-                    sumar("Yemas Extra", y_ex)
-
+                for sub_id in subs:
+                    st.write(f"**{sub_id.replace('_',' ')}**")
+                    s_receta = DB_COMPLEMENTOS[sub_id]
+                    
+                    # Calcular peso del extra
+                    if item['familia'] == "Conchas":
+                        p_ex_tot = CATALOGO_TECNICO["Conchas"]["peso_ex_u"][item['tamaño']] * item['cantidad']
+                    elif "Berlina" in item['familia']:
+                        p_ex_tot = (80 if "CREMA" in sub_id else 16) * item['cantidad']
+                    elif "Roles" in item['familia']:
+                        p_ex_tot = (13.4 if "SCHMEAR" in sub_id else 8) * item['cantidad']
+                    else:
+                        p_ex_tot = 1 # Para rebozados se usa factor directo
+                    
+                    factor_s = p_ex_tot / sum([v for v in s_receta.values() if isinstance(v, (int, float))])
+                    for ing, val in s_receta.items():
+                        if "Cabeza" in ing:
+                            st.write(f"- {ing}: {val*item['cantidad']} pzas")
+                            total_almacen[ing] = total_almacen.get(ing, 0) + (val*item['cantidad'])
+                        else:
+                            gr_s = val * (item['cantidad'] if "Muerto" in sub_id else factor_s)
+                            st.write(f"- {ing}: {gr_s:,.1f}g")
+                            total_almacen[ing] = total_almacen.get(ing, 0) + gr_s
             st.divider()
 
-    with t_super:
-        st.header("📦 Necesidades de Compra")
-        df_inv = pd.DataFrame(almacen_total.items(), columns=["Ingrediente", "Total (g)"]).sort_values("Ingrediente")
-        st.dataframe(df_inv, use_container_width=True)
-
-else:
-    st.info("La comanda está vacía. Selecciona productos arriba para empezar.")
+    with t_compras:
+        st.header("🛒 Lista Maestra de Insumos")
+        df_inv = pd.DataFrame(total_almacen.items(), columns=["Ingrediente", "Total (g/pzas)"]).sort_values("Ingrediente")
+        st.table(df_inv)
