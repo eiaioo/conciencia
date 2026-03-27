@@ -3,7 +3,7 @@ import pandas as pd
 import urllib.parse
 
 # ==========================================
-# CONFIGURACIÓN DE TEMA Y ESTILOS AVANZADOS
+# CONFIGURACIÓN DE UI - CONTROL TOTAL DE COLOR
 # ==========================================
 st.set_page_config(page_title="CONCIENCIA - Sistema Maestro", layout="wide")
 
@@ -14,64 +14,74 @@ if 'form_key' not in st.session_state: st.session_state.form_key = 0
 
 # Paleta de Colores
 if st.session_state.tema_oscuro:
-    MAIN_BG = "#121212"
-    SEC_BG = "#1E1E1E"
-    TEXT_COLOR = "#FFFFFF" # Blanco puro para legibilidad
-    LABEL_COLOR = "#FF9F43" # Naranja suave para títulos
-    BORDER_COLOR = "#333333"
-    INPUT_BG = "#262626"
+    BG_GENERAL = "#0E1117"
+    BG_TARJETAS = "#161B22"
+    TEXTO = "#E6EDF3"
+    INPUT_BG = "#0D1117"
+    BORDER = "#30363D"
+    ACCENT = "#D35400" # Naranja Conciencia
 else:
-    MAIN_BG = "#FDFDFD"
-    SEC_BG = "#F0F2F6"
-    TEXT_COLOR = "#202020"
-    LABEL_COLOR = "#D35400"
-    BORDER_COLOR = "#DDDDDD"
+    BG_GENERAL = "#FFFFFF"
+    BG_TARJETAS = "#F6F8FA"
+    TEXTO = "#1F2328"
     INPUT_BG = "#FFFFFF"
+    BORDER = "#D0D7DE"
+    ACCENT = "#E67E22"
 
 st.markdown(f"""
     <style>
-    /* 1. Fondo Global */
-    .stApp {{ background-color: {MAIN_BG}; color: {TEXT_COLOR}; }}
+    /* Fondo principal */
+    .stApp {{ background-color: {BG_GENERAL}; color: {TEXTO}; }}
     
-    /* 2. Arreglar Barras Blancas en Expanders y Contenedores */
-    div[data-testid="stExpander"], div[data-testid="stVerticalBlock"] > div[style*="border"] {{
-        background-color: {SEC_BG} !important;
-        border: 1px solid {BORDER_COLOR} !important;
-    }}
-    
-    /* Forzar que la cabecera del expander no sea blanca */
-    div[data-testid="stExpander"] summary {{
-        background-color: {SEC_BG} !important;
-        color: {TEXT_COLOR} !important;
+    /* Forzar color en Selectores y Entradas de Número */
+    div[data-baseweb="select"] > div, 
+    div[data-baseweb="input"], 
+    div[data-baseweb="base-input"],
+    input {{
+        background-color: {INPUT_BG} !important;
+        color: {TEXTO} !important;
+        border-color: {BORDER} !important;
     }}
 
-    /* 3. Etiquetas de los campos (Labels) - ¡Muy importante! */
+    /* Color de los iconos y texto dentro de los selectores */
+    div[data-testid="stSelectbox"] svg, 
+    div[data-testid="stNumberInput"] button {{
+        fill: {TEXTO} !important;
+        color: {TEXTO} !important;
+    }}
+
+    /* Arreglar Expanders (Barras blancas) */
+    .streamlit-expanderHeader {{
+        background-color: {BG_TARJETAS} !important;
+        color: {TEXTO} !important;
+        border-bottom: 1px solid {BORDER} !important;
+    }}
+    .streamlit-expanderContent {{
+        background-color: {BG_TARJETAS} !important;
+    }}
+
+    /* Etiquetas de texto arriba de los inputs */
     label, .stMarkdown p {{
-        color: {TEXT_COLOR} !important;
-        font-weight: 500 !important;
+        color: {TEXTO} !important;
+        font-weight: 600 !important;
     }}
-    
-    /* 4. Selectores e Inputs de texto */
-    div[data-baseweb="select"], div[data-baseweb="input"], input {{
-        background-color: {INPUT_BG} !important;
-        color: {TEXT_COLOR} !important;
+
+    /* Botón "+" personalizado */
+    .stButton>button {{
+        width: 100%;
+        background-color: {ACCENT} !important;
+        color: white !important;
+        border-radius: 8px;
+        border: none;
+        height: 3em;
     }}
-    
-    /* 5. Títulos de etapas en las recetas */
-    .etapa-box {{
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        color: #1a1a1a !important; /* Texto oscuro para contraste con el pastel */
-    }}
-    .etapa-titulo {{
-        font-weight: bold;
-        color: rgba(0,0,0,0.7) !important;
-    }}
+
+    /* Checklist en móvil */
+    .stCheckbox {{ align-items: center !important; }}
     </style>
 """, unsafe_allow_html=True)
 
-# BOTÓN DE TEMA (Emoji)
+# BOTÓN DE TEMA
 _, c_t2 = st.columns([0.94, 0.06])
 with c_t2:
     if st.button("🌙" if st.session_state.tema_oscuro else "☀️"):
@@ -79,19 +89,18 @@ with c_t2:
         st.rerun()
 
 # ==========================================
-# 1. BASE DE DATOS TÉCNICA
+# 1. BASE DE DATOS TÉCNICA (DNA COMPLETO)
 # ==========================================
 
-# (Mantengo la DB completa de antes para no perder recetas)
 DB_MASAS = {
     "Masa de Conchas": {
         "receta": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla sin sal": 40, "Sal fina": 2.5, "Levadura seca": 1.8, "Vainilla": 2},
-        "etapas": [{"n": "1. Autólisis", "i": ["Harina de fuerza", "Huevo", "Leche entera"], "c": "rgba(255, 235, 156, 0.7)"}, {"n": "2. Activación", "i": ["Levadura seca", "Vainilla"], "c": "rgba(168, 230, 173, 0.7)"}, {"n": "3. Estructura", "i": ["Azúcar", "Sal fina"], "c": "rgba(162, 210, 255, 0.7)"}, {"n": "4. Enriquecimiento", "i": ["Mantequilla sin sal"], "c": "rgba(255, 179, 140, 0.7)"}],
-        "merma": 1.0
+        "etapas": [{"n": "1. Autólisis", "i": ["Harina de fuerza", "Huevo", "Leche entera"], "c": "rgba(255, 235, 156, 0.6)"}, {"n": "2. Activación", "i": ["Levadura seca", "Vainilla"], "c": "rgba(168, 230, 173, 0.6)"}, {"n": "3. Estructura", "i": ["Azúcar", "Sal fina"], "c": "rgba(162, 210, 255, 0.6)"}, {"n": "4. Enriquecimiento", "i": ["Mantequilla sin sal"], "c": "rgba(255, 179, 140, 0.6)"}],
+        "merma": 1.0, "factor": 1.963
     },
     "Masa Brioche Rosca": {
         "receta": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura fresca": 0.35, "Sal fina": 2.2, "Agua Azahar": 0.6},
-        "etapas": [{"n": "1. Base", "i": ["Harina de fuerza", "Huevo", "Yemas", "Leche entera"], "c": "rgba(255, 235, 156, 0.7)"}, {"n": "2. Fermentación", "i": ["Levadura fresca"], "c": "rgba(168, 230, 173, 0.7)"}, {"n": "3. Sabor", "i": ["Azúcar", "Miel", "Sal fina", "Agua Azahar"], "c": "rgba(162, 210, 255, 0.7)"}, {"n": "4. Grasa", "i": ["Mantequilla sin sal"], "c": "rgba(255, 179, 140, 0.7)"}],
+        "etapas": [{"n": "1. Base", "i": ["Harina de fuerza", "Huevo", "Yemas", "Leche entera"], "c": "rgba(255, 235, 156, 0.6)"}, {"n": "2. Activación", "i": ["Levadura fresca"], "c": "rgba(168, 230, 173, 0.6)"}, {"n": "3. Sabor", "i": ["Azúcar", "Miel", "Sal fina", "Agua Azahar"], "c": "rgba(162, 210, 255, 0.6)"}, {"n": "4. Grasa", "i": ["Mantequilla sin sal"], "c": "rgba(255, 179, 140, 0.6)"}],
         "merma": 1.0, "tz_ratio": 0.025, "tz_liq": 1
     }
 }
@@ -99,13 +108,13 @@ DB_MASAS = {
 DB_COMPLEMENTOS = {
     "Lágrima de Vainilla": {"Harina de fuerza": 100, "Azúcar Glass": 100, "Mantequilla sin sal": 100},
     "Lágrima de Chocolate": {"Harina de fuerza": 87.5, "Cacao en polvo": 12.5, "Azúcar Glass": 100, "Mantequilla sin sal": 100},
-    "Crema Pastelera Vainilla": {"Leche entera": 500, "Yemas": 100, "Azúcar": 120, "Fécula": 45, "Mantequilla sin sal": 30},
+    "Crema Pastelera Vainilla": {"Leche entera": 500, "Yemas": 100, "Azúcar": 120, "Fécula de Maíz": 45, "Mantequilla sin sal": 30},
     "Decoración Rosca": {"Ate": 50, "Higo": 20, "Cereza": 10}
 }
 
 ARBOL = {
     "Conchas": {"espec": {"Vainilla": ["Lágrima de Vainilla"], "Chocolate": ["Lágrima de Chocolate"]}, "tamaños": {"Estándar": 95, "Mini": 35}, "p_ex": {"Estándar": 30, "Mini": 10}, "masa": "Masa de Conchas"},
-    "Rosca de reyes": {"espec": {"Tradicional": {"fijos": ["Lágrima de Vainilla", "Decoración Rosca"], "rellenos": ["Sin Relleno", "Crema Pastelera Vainilla"]}}, "tamaños": {"FAMILIAR": 1450, "MEDIANA": 650, "MINI": 120}, "p_relleno_map": {"FAMILIAR": 450, "MEDIANA": 200, "MINI": 35}, "masa": "Masa Brioche Rosca"}
+    "Rosca de reyes": {"espec": {"Tradicional": {"fijos": ["Lágrima de Vainilla", "Decoración Rosca"], "rellenos": ["Sin Relleno", "Crema Pastelera Vainilla"]}}, "tamaños": {"FAMILIAR": 1450, "MEDIANA": 650, "MINI": 120, "CONCHA-ROSCA": 90}, "p_relleno_map": {"FAMILIAR": 450, "MEDIANA": 200, "MINI": 35, "CONCHA-ROSCA": 25}, "masa": "Masa Brioche Rosca"}
 }
 
 # ==========================================
@@ -120,40 +129,50 @@ with st.expander("👤 1. Datos del Cliente", expanded=len(st.session_state.carr
     cli_n = c1.text_input("Nombre del Cliente", key=f"cn_{fk_c}")
     cli_w = c2.text_input("WhatsApp (10 dígitos)", key=f"cw_{fk_c}")
 
-with st.container():
-    st.subheader("🍞 2. Carrito de Panes")
-    fk = st.session_state.form_key
-    col1, col2, col3, col4 = st.columns([2,2,1,1])
-    
-    fam_sel = col1.selectbox("Familia", ["-"] + list(ARBOL.keys()), key=f"f_sel_{fk}")
-    if fam_sel != "-":
-        esp_sel = col2.selectbox("Especialidad", list(ARBOL[fam_sel]["espec"].keys()), key=f"e_sel_{fk}")
-        tam_sel = col3.selectbox("Tamaño", list(ARBOL[fam_sel]["tamaños"].keys()), key=f"t_sel_{fk}")
-        cant_sel = col4.number_input("Cant.", min_value=1, value=1, key=f"c_sel_{fk}")
-        
-        rel_sel = "N/A"
-        if fam_sel == "Rosca de reyes":
-            rel_sel = st.selectbox("Relleno", ARBOL[fam_sel]["espec"][esp_sel]["rellenos"], key=f"r_sel_{fk}")
-        
-        if st.button("➕ Añadir"):
-            st.session_state.carrito_actual.append({"fam": fam_sel, "esp": esp_sel, "tam": tam_sel, "rel": rel_sel, "cant": cant_sel})
+st.subheader("🍞 2. Carrito de Panes")
+fk = st.session_state.form_key
+col1, col2, col3, col4, col5 = st.columns([2,2,2,1.5,1])
+
+with col1:
+    f_sel = st.selectbox("Familia", ["-"] + list(ARBOL.keys()), key=f"f_sel_{fk}")
+with col2:
+    e_options = list(ARBOL[f_sel]["espec"].keys()) if f_sel != "-" else ["-"]
+    e_sel = st.selectbox("Especialidad", e_options, key=f"e_sel_{fk}")
+with col3:
+    t_options = list(ARBOL[f_sel]["tamaños"].keys()) if f_sel != "-" else ["-"]
+    t_sel = st.selectbox("Tamaño", t_options, key=f"t_sel_{fk}")
+with col4:
+    cant_sel = st.number_input("Cant.", min_value=1, value=1, key=f"c_sel_{fk}")
+
+rel_sel = "N/A"
+if f_sel == "Rosca de reyes" and e_sel != "-":
+    rel_sel = st.selectbox("Relleno", ARBOL[f_sel]["espec"][e_sel]["rellenos"], key=f"r_sel_{fk}")
+
+with col5:
+    st.write("##") # Espaciador
+    if st.button("➕"):
+        if f_sel != "-" and e_sel != "-" and t_sel != "-":
+            st.session_state.carrito_actual.append({"fam": f_sel, "esp": e_sel, "tam": t_sel, "rel": rel_sel, "cant": cant_sel})
             st.session_state.form_key += 1
             st.rerun()
 
+# MOSTRAR CARRITO
 if st.session_state.carrito_actual:
-    st.info(f"🛒 **Carrito para {cli_n}:**")
+    st.write(f"---")
+    st.markdown(f"🛒 **Pedido para:** {cli_n}")
     for p in st.session_state.carrito_actual:
         st.caption(f"• {p['cant']}x {p['fam']} {p['esp']} ({p['tam']})")
     
     cb1, cb2 = st.columns(2)
-    if cb1.button("✅ FINALIZAR PEDIDO"):
+    if cb1.button("✅ FINALIZAR Y GUARDAR TODO"):
         if cli_n:
             st.session_state.comanda.append({"cliente": cli_n, "wa": cli_w, "items": st.session_state.carrito_actual.copy()})
             st.session_state.carrito_actual = []; st.session_state.form_key += 1; st.rerun()
+        else: st.error("Escribe el nombre del cliente")
     if cb2.button("❌ Cancelar"): st.session_state.carrito_actual = []; st.rerun()
 
 # ==========================================
-# 3. PESTAÑAS DE PRODUCCIÓN
+# 3. PESTAÑAS DE TRABAJO (RESTO DE LA LÓGICA)
 # ==========================================
 
 if st.session_state.comanda:
@@ -170,17 +189,16 @@ if st.session_state.comanda:
 
     with t_res:
         for m_id, items in lotes_masa.items():
-            st.markdown(f"### 🛠️ Batido: {m_id}")
+            st.markdown(f"### 🛠️ Lote: {m_id}")
             m_dna = DB_MASAS[m_id]
             m_batch_gr = sum([(ARBOL[it['fam']]['tamaños'][it['tam']] * it['cant']) for it in items])
             h_base = (m_batch_gr * 100) / sum(m_dna['receta'].values())
-            
-            c1, c2 = st.columns([0.3, 0.7])
-            with c1:
+            c_masa, c_comp = st.columns([0.3, 0.7])
+            with c_masa:
                 st.info(f"**Masa ({m_batch_gr:,.1f}g)**")
                 for ing, porc in m_dna['receta'].items():
                     gr = porc*h_base/100; st.write(f"• {ing}: {gr:,.1f}g"); master_inv[ing] = master_inv.get(ing, 0) + gr
-            with c2:
+            with c_comp:
                 for it in items:
                     st.success(f"**{it['cant']}x {it['esp']} ({it['tam']}) — {it['cliente']}**")
                     cfg = ARBOL[it['fam']]
