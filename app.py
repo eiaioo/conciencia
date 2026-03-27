@@ -135,13 +135,11 @@ if st.session_state.comanda:
     sub_recetas_dia = {}
     compras_totales = {}
 
-    # Agrupar Masas
     for item in st.session_state.comanda:
         m_id = ARBOL[item['fam']].get("override", {}).get(item['esp'], ARBOL[item['fam']]['masa'])
         if m_id not in lotes_masa: lotes_masa[m_id] = []
         lotes_masa[m_id].append(item)
 
-    # Cálculo Global Compras
     for m_id, items in lotes_masa.items():
         m_dna = DB_MASAS[m_id]
         m_batch_gr = sum([(ARBOL[i['fam']].get("override_p", {}).get(i['esp'], (ARBOL[i['fam']]['tamaños'][i['tam']],0))[0] * i['cant']) / m_dna['merma'] for i in items])
@@ -161,11 +159,12 @@ if st.session_state.comanda:
         for s_id in lista:
             if s_id not in sub_recetas_dia: sub_recetas_dia[s_id] = {"ing": {}, "piezas": 0}
             sub_recetas_dia[s_id]["piezas"] += item['cant']
-            # Determinar peso objetivo
+            
             if item['fam'] == "Rosca de reyes" and s_id == item['rel']: p_u = cfg["p_relleno_map"][item['tam']]
             elif item['fam'] == "Conchas": p_u = cfg["p_ex"][item['tam']]
             elif "override_p" in cfg and item['esp'] in cfg["override_p"]: p_u = cfg["override_p"][item['esp']][1].get(s_id, 15)
             else: p_u = 15
+            
             p_batch = p_u * item['cant']
             s_rec = {k: v for k, v in DB_COMPLEMENTOS[s_id].items() if k != "SOP"}
             fact = p_batch / sum(s_rec.values())
@@ -174,52 +173,34 @@ if st.session_state.comanda:
                 sub_recetas_dia[s_id]["ing"][ing] = sub_recetas_dia[s_id]["ing"].get(ing, 0) + gr
                 compras_totales[ing] = compras_totales.get(ing, 0) + gr
 
-    # --- PESTAÑAS ---
-    tabs = st.tabs(["📋 Resumen Visual", "🛒 Lista Maestra"] + list(lotes_masa.keys()) + sorted(list(sub_recetas_dia.keys())))
+    tabs = st.tabs(["📋 Resumen", "🛒 Lista Maestra"] + list(lotes_masa.keys()) + sorted(list(sub_recetas_dia.keys())))
 
-    # T1: RESUMEN VISUAL (DESGLOSE COMPLETO)
     with tabs[0]:
         for m_id, items in lotes_masa.items():
             st.markdown(f"## 🛠️ Batido: {m_id}")
             m_dna = DB_MASAS[m_id]
             m_batch_gr = sum([(ARBOL[it['fam']].get("override_p", {}).get(it['esp'], (ARBOL[it['fam']]['tamaños'][it['tam']],0))[0] * it['cant']) / m_dna['merma'] for it in items])
             h_base = (m_batch_gr * 100) / sum([v for k,v in m_dna['receta'].items()])
-            
             cols = st.columns(1 + len(items))
             with cols[0]:
                 st.info(f"**Masa (Total: {m_batch_gr:,.1f}g)**")
                 for ing, porc in m_dna['receta'].items():
                     st.write(f"• {ing}: {porc*h_base/100:,.1f}g")
-            
             for idx, it in enumerate(items):
                 with cols[idx+1]:
                     st.success(f"**{it['esp']} ({it['tam']})**")
-                    cfg_it = ARBOL[it['fam']]
-                    subs_it = cfg_it["espec"][it['esp']]
-                    lista_it = subs_it["fijos"].copy() if isinstance(subs_it, dict) else subs_it.copy()
+                    subs_item = ARBOL[it['fam']]["espec"][it['esp']]
+                    lista_it = subs_item["fijos"].copy() if isinstance(subs_item, dict) else subs_item.copy()
                     if it['rel'] not in ["N/A", "Sin Relleno"]: lista_it.append(it['rel'])
-                    
                     for s_id in lista_it:
-                        # Determinar peso unitario
-                        if it['fam'] == "Rosca de reyes" and s_id == it['rel']: p_u_it = cfg_it["p_relleno_map"][it['tam']]
-                        elif it['fam'] == "Conchas": p_u_it = cfg_it["p_ex"][it['tam']]
-                        elif "override_p" in cfg_it and it['esp'] in cfg_it["override_p"]: p_u_it = cfg_it["override_p"][it['esp']][1].get(s_id, 15)
-                        else: p_u_it = 15
-                        
-                        peso_sub_it = p_u_it * it['cant']
-                        st.markdown(f"**{s_id} ({peso_sub_it:,.1f}g)**")
-                        
-                        # DESGLOSE DE INGREDIENTES DEL COMPLEMENTO
+                        p_u_it = ARBOL[it['fam']]["p_relleno_map"][it['tam']] if it['fam'] == "Rosca de reyes" and s_id == it['rel'] else (ARBOL[it['fam']]["p_ex"][it['tam']] if it['fam'] == "Conchas" else 15)
+                        st.markdown(f"**{s_id} ({p_u_it*it['cant']:,.1f}g)**")
                         s_rec_dna = {k: v for k, v in DB_COMPLEMENTOS[s_id].items() if k != "SOP"}
-                        fact_it = peso_sub_it / sum(s_rec_dna.values())
+                        fact_it = (p_u_it*it['cant']) / sum(s_rec_dna.values())
                         for ing_s, val_s in s_rec_dna.items():
-                            if "Cabeza" in ing_s:
-                                st.write(f"- {ing_s}: {val_s*it['cant']} pz")
-                            else:
-                                gr_s = val_s * (it['cant'] if "Rebozado" in s_id or "Decoración" in s_id else fact_it)
-                                st.write(f"- {ing_s}: {gr_s:,.1f}g")
+                            gr_s = val_s * (it['cant'] if "Rebozado" in s_id or "Decoración" in s_id or "Cabeza" in ing_s else fact_it)
+                            st.write(f"- {ing_s}: {gr_s:,.1f}{'pz' if 'Cabeza' in ing_s else 'g'}")
 
-    # T2: LISTA MAESTRA
     with tabs[1]:
         st.header("📦 Surtido de Almacén")
         for insumo, cant in sorted(compras_totales.items()):
@@ -229,7 +210,6 @@ if st.session_state.comanda:
                 c2.markdown(f"~~{label_txt}~~", unsafe_allow_html=True)
             else: c2.markdown(label_txt, unsafe_allow_html=True)
 
-    # T-MASAS (Checklist + SOP)
     for i, m_id in enumerate(lotes_masa.keys()):
         with tabs[i+2]:
             st.header(f"🥣 Masa: {m_id}")
@@ -238,20 +218,21 @@ if st.session_state.comanda:
             h_b = (m_batch * 100) / sum(m_dna['receta'].values())
             for ing, porc in m_dna['receta'].items():
                 c1, c2 = st.columns([0.05, 0.95])
-                if c1.checkbox(f"{ing}", key=f"det_{m_id}_{ing}"):
-                    c2.markdown(f"~~{ing}: {porc*h_b/100:,.1f}g~~")
-                else: c2.write(f"**{ing}:** {porc*h_b/100:,.1f}g")
+                val_gr = f"{ing}: **{porc*h_b/100:,.1f}g**"
+                if c1.checkbox("", key=f"det_{m_id}_{ing}"):
+                    c2.markdown(f"~~{val_gr}~~", unsafe_allow_html=True)
+                else: c2.markdown(val_gr, unsafe_allow_html=True)
             st.info("### 📝 SOP")
             for s in m_dna["SOP"]: st.write(s)
 
-    # T-SUBRECETAS (Checklist + SOP)
     offset = 2 + len(lotes_masa)
     for i, (s_id, data) in enumerate(sorted(sub_recetas_dia.items())):
         with tabs[offset + i]:
             st.header(f"✨ {s_id}")
             for ing, gr in data['ing'].items():
                 c1, c2 = st.columns([0.05, 0.95])
-                if c1.checkbox(f"{ing}", key=f"sub_det_{s_id}_{ing}"):
-                    c2.markdown(f"~~{ing}: {gr:,.1f}g~~")
-                else: c2.write(f"**{ing}:** {gr:,.1f}g")
+                val_gr = f"{ing}: **{gr:,.1f}**{'pz' if 'Cabeza' in ing else 'g'}"
+                if c1.checkbox("", key=f"sub_det_{s_id}_{ing}"):
+                    c2.markdown(f"~~{val_gr}~~", unsafe_allow_html=True)
+                else: c2.markdown(val_gr, unsafe_allow_html=True)
             st.warning(f"### 📝 SOP: {DB_COMPLEMENTOS[s_id]['SOP']}")
