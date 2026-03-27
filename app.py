@@ -3,215 +3,245 @@ import pandas as pd
 import urllib.parse
 
 # ==========================================
-# 1. INICIALIZACIÓN DE MEMORIA (ANTI-ERRORES)
+# 1. ESTADO DE LA APLICACIÓN (CERO ERRORES)
 # ==========================================
 if 'pedidos' not in st.session_state: st.session_state.pedidos = []
 if 'carrito' not in st.session_state: st.session_state.carrito = []
-if 'f_key' not in st.session_state: st.session_state.f_key = 0
-if 'tema_oscuro' not in st.session_state: st.session_state.tema_oscuro = True
-if 'cli_n' not in st.session_state: st.session_state.cli_n = ""
-if 'cli_w' not in st.session_state: st.session_state.cli_w = ""
+if 'form_key' not in st.session_state: st.session_state.form_key = 0
 
 st.set_page_config(page_title="CONCIENCIA - Maestro", layout="wide")
 
 # ==========================================
-# 2. DISEÑO VISUAL (MODO MATE INTEGRADO)
-# ==========================================
-C_BG = "#0E1117" if st.session_state.tema_oscuro else "#F6F8FA"
-C_SEC = "#161B22" if st.session_state.tema_oscuro else "#FFFFFF"
-C_TXT = "#E6EDF3" if st.session_state.tema_oscuro else "#1F2328"
-C_BRD = "#30363D" if st.session_state.tema_oscuro else "#D0D7DE"
-
-st.markdown(f"""
-    <style>
-    .stApp {{ background-color: {C_BG} !important; color: {C_TXT}; }}
-    h1, h2, h3, h4, p, span, label {{ color: {C_TXT} !important; }}
-    
-    /* Eliminar Barras Blancas y Fugas */
-    div[data-testid="stExpander"], .streamlit-expanderHeader {{
-        background-color: {C_SEC} !important; border: 1px solid {C_BRD} !important; color: {C_TXT} !important;
-    }}
-    
-    /* Dropdown Menus (Evitar blancos) */
-    div[data-baseweb="select"] > div, div[data-baseweb="input"], input {{
-        background-color: {C_BG} !important; color: {C_TXT} !important; border: 1px solid {C_BRD} !important;
-    }}
-    ul[role="listbox"] {{ background-color: {C_SEC} !important; color: {C_TXT} !important; border: 1px solid {C_BRD} !important; }}
-    li[role="option"] {{ color: {C_TXT} !important; }}
-
-    /* Corregir botón chueco y diseño de inputs */
-    div[data-testid="stNumberInput"] button {{ background-color: {C_SEC} !important; color: {C_TXT} !important; border: 1px solid {C_BRD} !important; }}
-    .stButton > button {{ border-radius: 8px; font-weight: bold; background-color: {C_SEC} !important; color: {C_TXT} !important; border: 1px solid {C_BRD} !important; }}
-
-    /* Bloques de Producción (30% opacidad) */
-    .etapa-box {{ padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); color: #1a1a1a !important; font-weight: 600; }}
-    </style>
-""", unsafe_allow_html=True)
-
-# ==========================================
-# 3. BASE DE DATOS TÉCNICA TOTAL (RESTAURADA)
+# 2. BASE DE DATOS MAESTRA (DNA PANADERO)
 # ==========================================
 
-DB_MASAS = {
-    "Masa Conchas": {"receta": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla": 40, "Sal fina": 2.5, "Levadura seca": 1.8, "Vainilla": 2}, "merma": 1.0, "factor": 1.963},
-    "Masa Brioche Rosca": {"receta": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura": 0.35, "Sal fina": 2.2, "Agua Azahar": 0.6}, "merma": 1.0},
-    "Masa Berlinas": {"receta": {"Harina de fuerza": 100, "Azúcar": 22, "Mantequilla": 20, "Huevo": 25, "Leche entera": 22, "Sal fina": 1.8, "Levadura seca": 1.0}, "merma": 0.85},
-    "Masa Brioche Roles": {"receta": {"Harina de fuerza": 93, "Huevo": 30, "Leche ajuste": 5, "Levadura fresca": 1.0, "Sal fina": 1.8, "Azúcar": 16, "Mantequilla": 17}, "merma": 1.0},
-    "Masa Red Velvet": {"receta": {"Harina": 100, "Azúcar": 16, "Mantequilla": 17, "Huevo": 30, "Leche": 4, "Levadura": 1.0, "Cacao": 0.8, "Color Rojo": 0.7, "Vinagre": 0.3}, "merma": 1.0},
-    "Masa Pan Muerto": {"receta": {"Harina de fuerza": 100, "Leche": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla": 25, "Levadura": 5.0, "Sal": 1.8, "Polvo Guayaba": 5.0}, "merma": 1.0},
-    "Mezcla Brownie": {"receta": {"Mantequilla": 330, "Azúcar": 395, "Chocolate Turin": 165, "Harina de fuerza": 190, "Nuez": 140, "Sal fina": 8}, "merma": 1.0, "fijo": True}
+# Aquí reside toda la inteligencia de las fichas técnicas
+DATABASE = {
+    "CONCHAS": {
+        "masa": "Dough Brioche Concha",
+        "tallas": {"Estándar": 95, "Mini": 35},
+        "complementos": {
+            "Vainilla": {"Lágrima Vainilla": 30}, # Peso para Estándar, se ajusta para mini solo
+            "Chocolate": {"Lágrima Chocolate": 30},
+            "Matcha": {"Lágrima Matcha": 30},
+            "Fresa": {"Lágrima Fresa": 30},
+            "Mazapán": {"Lágrima Mazapán": 30},
+            "Oreo": {"Lágrima Oreo": 30},
+            "Pinole": {"Lágrima Pinole": 30}
+        }
+    },
+    "ROSCAS": {
+        "masa": "Dough Brioche Rosca",
+        "tallas": {"Familiar": 1450, "Mediana": 650, "Mini": 120, "Individual": 90},
+        "relleno_map": {"Familiar": 450, "Mediana": 200, "Mini": 35, "Individual": 25},
+        "especialidades": {
+            "Tradicional": ["Lágrima Vainilla", "Decoración Rosca Ate"],
+            "Chocolate": ["Lágrima Chocolate", "Decoración Nuez"],
+            "Turín": ["Lágrima Chocolate", "Crema Turín", "Glaseado Turín Costra", "Cabezas Conejo"]
+        },
+        "cremas_extra": ["Sin Relleno", "Crema Vainilla", "Crema Chocolate", "Crema Ruby"]
+    },
+    "BERLINAS": {
+        "masa": "Dough Berlín TZ",
+        "tallas": {"Estándar": 60, "Ruby Special": 70},
+        "especialidades": {
+            "Vainilla": ["Crema Vainilla"],
+            "Ruby v2.0": ["Crema Ruby", "Glaseado Ruby"],
+            "Turín": ["Crema Turín", "Glaseado Turín Costra"]
+        }
+    },
+    "ROLES": {
+        "masa": "Dough Roles Master",
+        "tallas": {"Individual": 90},
+        "especialidades": {
+            "Tradicional Canela": ["Schmear Canela", "Inclusión Pasas Arándanos", "Té Earl Grey"],
+            "Manzana": ["Schmear Canela", "Inclusión Manzana", "Agua Tibia"],
+            "Red Velvet": ["Masa Red Velvet", "Schmear RV", "Crema Vainilla"]
+        }
+    },
+    "PAN DE MUERTO": {
+        "masa": "Dough Muerto",
+        "tallas": {"Estándar": 90},
+        "especialidades": {
+            "Tradicional Naranja": ["Rebozado Muerto"],
+            "Guayaba Huesos-Ref": ["Rebozado Muerto", "Yemas Huesos", "Harina Huesos"]
+        }
+    },
+    "BROWNIES": {
+        "masa": "Mezcla Brownie",
+        "tallas": {"Molde 20x20": 1},
+        "especialidades": {"Turín Amargo": []}
+    }
 }
 
-DB_COMPLEMENTOS = {
-    "Lágrima Vainilla": {"Harina de fuerza": 100, "Azúcar Glass": 100, "Mantequilla sin sal": 100, "col": "rgba(255, 235, 156, 0.3)"},
-    "Lágrima Chocolate": {"Harina de fuerza": 87.5, "Cacao en polvo": 12.5, "Azúcar Glass": 100, "Mantequilla sin sal": 100, "col": "rgba(162, 210, 255, 0.3)"},
-    "Lágrima Matcha": {"Harina de fuerza": 91.5, "Matcha": 8.5, "Azúcar Glass": 100, "Mantequilla": 100, "col": "rgba(168, 230, 173, 0.3)"},
-    "Lágrima Fresa": {"Harina de fuerza": 100, "Azúcar Glass": 79, "Nesquik": 21, "Mantequilla": 100, "col": "rgba(255, 179, 140, 0.3)"},
-    "Lágrima Mazapán": {"Harina": 100, "Mazapan": 66, "Azúcar Glass": 100, "Mantequilla": 100, "col": "rgba(212, 163, 115, 0.3)"},
-    "Lágrima Oreo": {"Harina": 100, "Oreo picada": 25, "Azúcar Glass": 75, "Mantequilla": 100, "col": "rgba(255, 235, 156, 0.3)"},
-    "Lágrima Pinole": {"Harina": 79, "Pinole": 21, "Azúcar Glass": 100, "Mantequilla": 100, "col": "rgba(212, 163, 115, 0.3)"},
-    "Crema Vainilla": {"Leche": 500, "Yemas": 100, "Azúcar": 120, "Fécula": 45, "Mantequilla": 30, "col": "#E3F2FD"},
-    "Crema Ruby": {"Leche": 131, "Crema 35%": 131, "Yemas": 53, "Azúcar": 63, "Fécula": 24, "col": "#F8BBD0"},
-    "Crema Turin": {"Leche": 450, "Yemas": 100, "Azúcar": 90, "Fécula": 45, "Chocolate Turin": 120, "col": "#FFF3E0"},
-    "Schmear Canela": {"Mantequilla pomada": 200, "Azúcar Mascabada": 300, "Canela": 25, "Maicena": 20, "col": "#D7CCC8"},
-    "Decoración Rosca Ate": {"Ate Tiras": 50, "Higo": 20, "Cereza": 10, "col": "#C8E6C9"}
-}
-
-# Árbol de Selección Completo
-ARBOL = {
-    "CONCHAS": {"espec": ["Vainilla", "Chocolate", "Matcha", "Fresa", "Mazapán", "Oreo", "Pinole"], "tam": {"Estándar": 95, "Mini": 35}, "p_ex": {"Estándar": 30, "Mini": 10}, "m_id": "Masa Conchas"},
-    "ROSCAS": {"espec": ["Tradicional", "Turín"], "tam": {"Familiar (1.5kg)": 1450, "Mediana (650g)": 650, "Mini (120g)": 120, "Concha-Rosca": 90}, "p_rel_m": {"Familiar (1.5kg)": 450, "Mediana (650g)": 200, "Mini (120g)": 35, "Concha-Rosca": 25}, "m_id": "Masa Brioche Rosca"},
-    "BERLINAS": {"espec": ["Vainilla Clásica", "Ruby v2.0"], "tam": {"Estándar": 60}, "m_id": "Masa de Berlinas", "p_m": {"Ruby v2.0": 70}},
-    "ROLES": {"espec": ["Canela Tradicional", "Manzana", "Red Velvet Premium"], "tam": {"Individual": 90}, "m_id": "Masa Brioche Roles", "m_ov": {"Red Velvet Premium": "Masa Red Velvet"}},
-    "PAN MUERTO": {"espec": ["Tradicional", "Guayaba"], "tam": {"Estándar": 95}, "m_id": "Masa Pan Muerto"},
-    "BROWNIES": {"espec": ["Chocolate Turín"], "tam": {"Molde 20x20": 1}, "m_id": "Mezcla Brownie"}
-}
-
-# ==========================================
-# 4. SIDEBAR (MENÚ DE NAVEGACIÓN)
-# ==========================================
-with st.sidebar:
-    st.title("🥖 MENÚ")
-    pagina = st.radio("Secciones", ["➕ Captura Pedido", "📋 Resumen Producción", "🥣 Hoja de Batidos", "🛒 Súper"])
-    st.divider()
-    if st.button("🗑️ VACIAR TODO"):
-        st.session_state.pedidos = []; st.session_state.carrito = []; st.session_state.cli_n = ""; st.rerun()
-    if st.button("🌙/☀️"):
-        st.session_state.tema_oscuro = not st.session_state.tema_oscuro; st.rerun()
-
-# ==========================================
-# 5. PÁGINA: CAPTURA (ESTABLE)
-# ==========================================
-if pagina == "➕ Captura Pedido":
-    st.header("Cargar Pedidos de Clientes")
-    with st.container():
-        c1, c2 = st.columns(2)
-        st.session_state.cli_n = c1.text_input("Nombre Cliente", value=st.session_state.cli_n)
-        st.session_state.cli_w = c2.text_input("WhatsApp", value=st.session_state.cli_w)
-
-    st.write("---")
-    fk = st.session_state.form_key
-    # COLUMNAS PARA EVITAR BOTON CHUECO (ESPACIADOR VISUAL)
-    col1, col2, col3, col4, col5 = st.columns([2, 2, 1.5, 1, 0.5])
+# Recetas desglosadas por 100g de Harina (Masa) o Batch Completo (Extras)
+ING_RECETARIO = {
+    "Dough Brioche Concha": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla": 40, "Sal fina": 2.5, "Levadura": 1.8},
+    "Dough Berlín TZ": {"Harina de fuerza": 100, "Azúcar": 22, "Mantequilla": 20, "Huevo": 25, "Leche": 22, "Sal fina": 1.8, "Levadura": 1.0, "_merma": 0.85},
+    "Dough Brioche Rosca": {"Harina": 100, "Azúcar": 25, "Miel": 3, "Mantequilla": 30, "Huevo": 20, "Yemas": 4, "Leche": 24, "Sal": 2.2, "Azahar": 0.6},
+    "Dough Roles Master": {"Harina de fuerza": 93, "Huevo": 30, "Leche": 5, "Levadura": 1.0, "Sal": 1.8, "Azúcar": 16, "Mantequilla": 17},
+    "Masa Red Velvet": {"Harina": 100, "Azúcar": 16, "Mantequilla": 17, "Huevo": 30, "Levadura": 1, "Rojo Rojo": 0.7, "Vinagre": 0.3},
+    "Dough Muerto": {"Harina de fuerza": 100, "Leche entera": 30, "Yemas": 18, "Azúcar": 20, "Mantequilla": 25, "Sal": 1.8, "Levadura fresca": 5.0},
+    "Mezcla Brownie": {"Mantequilla sin sal": 330, "Azúcar Blanca": 275, "Chocolate Turin Amargo": 165, "Harina de fuerza": 190, "Cocoa": 75},
     
-    fam = col1.selectbox("Pan", ["-"] + list(ARBOL.keys()), key=f"f_{fk}")
-    if fam != "-":
-        esp = col2.selectbox("Sabor", ARBOL[fam]["espec"], key=f"e_{fk}")
-        tam = col3.selectbox("Tamaño", list(ARBOL[fam]["tam"].keys()), key=f"t_{fk}")
-        can = col4.number_input("Cant", min_value=1, value=1, key=f"c_{fk}")
-        rel = "Sin Relleno"
-        if fam == "ROSCAS": rel = st.selectbox("Relleno", ["Sin Relleno", "Crema Vainilla", "Crema Ruby"], key=f"r_{fk}")
+    # --- COMPLEMENTOS (Sub-recetas) ---
+    "Lágrima Vainilla": {"Harina": 100, "Azúcar Glass": 100, "Mantequilla": 100},
+    "Lágrima Chocolate": {"Harina": 87.5, "Cacao": 12.5, "Azúcar Glass": 100, "Mantequilla": 100},
+    "Lágrima Matcha": {"Harina": 91.5, "Matcha": 8.5, "Azúcar Glass": 100, "Mantequilla": 100},
+    "Crema Vainilla": {"Leche": 500, "Yemas": 100, "Azúcar": 120, "Fécula": 45, "Mantequilla": 30},
+    "Crema Ruby": {"Leche": 131, "Crema 35%": 131, "Yemas": 53, "Azúcar": 63},
+    "Crema Turín": {"Leche": 450, "Yemas": 100, "Azúcar": 90, "Chocolate Turin": 120},
+    "Schmear Canela": {"Mantequilla pomada": 200, "Mascabado": 300, "Canela": 25, "Maicena": 20}
+}
 
-        col5.write("") # Empujar hacia abajo
-        col5.write("")
-        if col5.button("➕", key=f"add_{fk}"):
-            st.session_state.carrito.append({"fam": fam, "esp": esp, "tam": tam, "can": can, "rel": rel})
-            st.session_state.f_key += 1; st.rerun()
+# ==========================================
+# 3. INTERFAZ DE CAPTURA (WORKSHOP STYLE)
+# ==========================================
 
-    if st.session_state.carrito:
-        st.info(f"🛒 Carrito para: {st.session_state.cli_n}")
-        for i, it in enumerate(st.session_state.carrito):
-            st.write(f"• {it['can']}x {it['fam']} {it['esp']} ({it['tam']})")
+st.title("🍞 Producción Integral CONCIENCIA")
+
+with st.container():
+    col_c1, col_c2 = st.columns(2)
+    cliente = col_c1.text_input("Nombre del Cliente", placeholder="Lalo...")
+    telefono = col_c2.text_input("WhatsApp (10 dígitos)")
+
+st.subheader("🛠️ Selección de Pan")
+fk = st.session_state.form_key
+c1, c2, c3, c4, c5 = st.columns([2, 2, 1.5, 1, 0.6])
+
+familia = c1.selectbox("Familia de Pan", ["-"] + list(DATABASE.keys()), key=f"fam_{fk}")
+
+if familia != "-":
+    # Selección Inteligente de especialidades
+    espec_options = list(DATABASE[familia]["especialidades"].keys()) if "especialidades" in DATABASE[familia] else list(DATABASE[familia]["complementos"].keys())
+    especialidad = c2.selectbox("Sabor / Variante", espec_options, key=f"esp_{fk}")
+    
+    # Tamaños
+    tallas_keys = list(DATABASE[familia]["tallas"].keys())
+    talla = c3.selectbox("Tamaño", tallas_keys, key=f"tam_{fk}")
+    
+    # Cantidad
+    cantidad = c4.number_input("Cantidad", min_value=1, value=1, key=f"cnt_{fk}")
+    
+    # Rellenos (Solo si es Rosca)
+    relleno_final = "N/A"
+    if familia == "ROSCA_DE_REYES":
+        relleno_final = st.selectbox("Añadir Relleno de Crema", DATABASE[familia]["rellenos_validos"], key=f"rell_{fk}")
+
+    # Alineación del botón ➕
+    c5.write(" ")
+    c5.write(" ")
+    if c5.button("➕"):
+        st.session_state.carrito.append({
+            "fam": familia, "esp": especialidad, "tam": talla, "cant": cantidad, "rel": relleno_final
+        })
+        st.session_state.form_key += 1
+        st.rerun()
+
+# --- REVISIÓN DEL CARRITO ---
+if st.session_state.carrito:
+    with st.expander(f"🛒 Ver carrito para {cliente if cliente else 'Venta General'}", expanded=True):
+        for it in st.session_state.carrito:
+            st.write(f"- {it['cant']}x {it['fam']} — {it['esp']} ({it['tam']}) {'+ '+it['rel'] if it['rel']!='N/A' else ''}")
         
-        if st.button("✅ GUARDAR Y FINALIZAR PEDIDO"):
-            if st.session_state.cli_n:
-                st.session_state.pedidos.append({"cli": st.session_state.cli_n, "wa": st.session_state.cli_w, "items": st.session_state.carrito.copy()})
-                st.session_state.carrito = []; st.session_state.cli_n = ""; st.session_state.cli_w = ""; st.rerun()
+        btn_c1, btn_c2 = st.columns(2)
+        if btn_c1.button("✅ FINALIZAR PEDIDO Y ENVIAR A COCINA"):
+            st.session_state.pedidos.append({"cliente": cliente, "wa": telefono, "items": st.session_state.carrito.copy()})
+            st.session_state.carrito = []; st.rerun()
+        if btn_c2.button("🗑️ VACIAR"): st.session_state.carrito = []; st.rerun()
 
 # ==========================================
-# 6. MOTOR DE CÁLCULO Y VISTAS (RESUMEN / SÚPER / PRODUCCIÓN)
+# 4. MOTOR DE PROCESAMIENTO (LA LÓGICA)
 # ==========================================
+
 if st.session_state.pedidos:
-    # Cálculo Global previo
-    final_master_inv = {}
-    lotes_masa = {}
-    lotes_complementos = {}
+    st.divider()
+    tab_sum, tab_pes, tab_super = st.tabs(["📋 Resumen de Órdenes", "🥣 Hojas de Trabajo", "🛒 Lista de Compras"])
+    
+    inv_compras = {}
+    batidos_lote = {}
+    complementos_lote = {} # Agrupa todas las lágrimas/rellenos del día
 
-    for ped in st.session_state.pedidos:
-        for it in ped['items']:
-            # Agrupar Masas
-            masa_id = ARBOL[it['fam']].get("m_ov", {}).get(it['esp'], ARBOL[it['fam']]["m_id"])
-            if masa_id not in lotes_masa: lotes_masa[masa_id] = []
-            it_cl = it.copy(); it_cl['cliente'] = ped['cli']; lotes_masa[masa_id].append(it_cl)
+    # Recorrido del Motor
+    for orden in st.session_state.pedidos:
+        for it in orden['items']:
+            # -- LÓGICA MASA --
+            m_id = DATABASE[it['fam']]["masa"]
+            if it['esp'] == "Red Velvet": m_id = "Masa Red Velvet"
+            if m_id not in batidos_lote: batidos_lote[m_id] = []
+            
+            # Crear registro para el resumen
+            it_cl = it.copy(); it_cl['cliente'] = orden['cliente']
+            batidos_lote[m_id].append(it_cl)
 
-            # Complementos (Lágrimas / Rellenos / Decoración)
-            subs_actuales = []
-            if it['fam'] == "CONCHAS": subs_actuales.append(f"Lágrima {it['esp']}")
-            if it['fam'] == "ROSCAS":
-                subs_actuales.append("Decoración Rosca Ate")
-                if it['rel'] != "Sin Relleno": subs_actuales.append(it['rel'].replace("Pastelera ", ""))
-            if it['fam'] == "BERLINAS" and it['esp'] == "Ruby v2.0": subs_actuales.append("Crema Ruby")
-            if it['fam'] == "ROLLOS": subs_actuales.append("Schmear Canela")
-            if it['fam'] == "PAN MUERTO": subs_actuales.append("Rebozado Muerto")
+            # -- LÓGICA COMPLEMENTOS (Sub-recetas) --
+            # Aquí es donde desglosamos lo que lleva cada pan
+            lista_extras = []
+            cfg = DATABASE[it['fam']]
+            if it['fam'] == "CONCHAS": lista_extras.append(cfg["complementos"][it['esp']][0] if isinstance(cfg["complementos"][it['esp']], list) else cfg["complementos"][it['esp']]) # Para conchas viejas
+            # Actualizado para consistencia
+            if it['fam'] == "CONCHAS": lista_extras = [f"Lágrima {it['esp']}"]
+            if it['fam'] == "ROSCA DE REYES":
+                espec_data = cfg["especialidades"][it['esp']]
+                lista_extras.extend(espec_data)
+                if it['rel'] != "Sin Relleno" and it['rel'] != "N/A": lista_extras.append(it['rel'])
+            if it['fam'] == "BERLINAS":
+                lista_extras.extend(cfg["especialidades"][it['esp']])
+            if it['fam'] == "ROLLOS":
+                lista_extras.extend(cfg["especialidades"][it['esp']])
+            if it['fam'] == "PAN DE MUERTO":
+                lista_extras.extend(cfg["especialidades"][it['esp']])
 
-            for sid in subs_actuales:
-                if sid in DB_COMPLEMENTOS:
-                    if "Crema" in sid and it['fam'] == "ROSCAS": pu = ARBOL[it['fam']]["p_rel_m"][it['tam']]
-                    else: pu = ARBOL[it['fam']].get("p_ex", {}).get(it['tam'], 15) if "Lágrima" in sid else 15
-                    lotes_complementos[sid] = lotes_complementos.get(sid, 0) + (pu * it['can'])
+            for sid in lista_extras:
+                # Definir peso del complemento
+                p_unit = 15
+                if "Lágrima" in sid and it['fam'] == "CONCHAS": p_unit = cfg["p_ex"][it['tam']]
+                elif "Crema" in sid and it['fam'] == "ROSCAS": p_unit = cfg["p_relleno_map"][it['tam']]
+                elif "Decoración Rosca" in sid: p_unit = 50 if it['tam'] == "Familiar" else 20
+                
+                complementos_lote[sid] = complementos_lote.get(sid, 0) + (p_unit * it['cant'])
 
-    if pagina == "📋 Resumen Visual":
-        for m_id, items in lotes_masa.items():
-            st.header(f"🛠️ BATIDO: {m_id}")
-            m_dna = DB_MASAS[m_id]; 
-            batch_tot = sum([(ARBOL[it['fam']].get("p_man",{}).get(it['esp'], ARBOL[it['fam']]['tam'][it['tam']]) * it['can']) / m_dna['merma'] for it in items])
-            hb = (batch_tot * 100) / sum(m_dna['receta'].values())
-            c_l, c_r = st.columns([0.3, 0.7])
-            with c_l:
-                st.info(f"Ingredientes Masa ({batch_tot:,.1f}g)")
-                for k,v in m_dna['receta'].items(): st.write(f"• {k}: {v*hb/100:,.1f}g"); final_master_inv[k] = final_master_inv.get(k,0)+ (v*hb/100)
-            with c_r:
-                for it in items:
-                    st.success(f"{it['can']}x {it['esp']} ({it['tam']}) — {it['cliente']}")
-                    s_id_it = f"Lágrima {it['esp']}" if it['fam'] == "CONCHAS" else None
-                    if s_id_it in DB_COMPLEMENTOS:
-                        s_r = DB_COMPLEMENTOS[s_id_it]; p_tot_s = ARBOL[it['fam']]['p_ex'][it['tam']] * it['can']; f_s = p_tot_s / sum(s_r.values())
-                        st.markdown(f"**{s_id_it} ({p_tot_s:,.1f}g)**")
-                        for sk, sv in s_r.items(): 
-                            if sk != 'col' and sk != 'c': st.write(f"- {sk}: {sv*f_s:,.1f}g"); final_master_inv[sk] = final_master_inv.get(sk,0)+ (sv*f_s)
+    # --- RENDER: RESUMEN VISUAL ---
+    with tab_sum:
+        for mid, items in batidos_lote.items():
+            m_dna = ING_RECETARIO[mid]
+            m_sum = sum([(DATABASE[i['fam']]['tallas'][i['tam']] * i['cant']) for i in items])
+            hb = (m_sum * 100) / sum([v for k,v in m_dna.items() if not k.startswith("_")])
+            
+            st.markdown(f"#### 🏷️ Lote de Masa: {mid} ({m_sum:,.1f}g)")
+            ca, cb = st.columns([0.4, 0.6])
+            with ca:
+                for k,v in m_dna.items(): 
+                    if not k.startswith("_"): gr = v*hb/100; st.write(f"- {k}: **{gr:,.1f}g**"); inv_compras[k] = inv_compras.get(k, 0) + gr
+            with cb:
+                for i in items: st.info(f"{i['cant']}x {i['esp']} — {i['cliente']} ({i['tam']})")
 
-    elif pagina == "🥣 Hoja de Batidos":
-        c_m, c_c = st.columns(2)
-        with c_m:
-            st.subheader("Batidos de Masa")
-            for m_id, items in lotes_masa.items():
-                md = DB_MASAS[m_id]; bt = sum([(ARBOL[it['fam']]['tam'][it['tam']]*it['can']) for it in items]); hb_m = (bt*100)/sum(md['receta'].values())
-                st.write(f"**{m_id} ({bt:,.0f}g)**")
-                for etapa in md.get("etapas", []):
-                    st.markdown(f'<div class="etapa-box" style="background-color: {etapa["c"]};">{etapa["n"]}</div>', unsafe_allow_html=True)
-                    for ing in etapa['i']: st.checkbox(f"{ing}: {md['receta'][ing]*hb_m/100:,.1f}g", key=f"bt_{m_id}_{ing}_{it['can']}")
-        with c_c:
-            st.subheader("Complementos")
-            for sid, p_t in lotes_complementos.items():
-                sr = DB_COMPLEMENTOS[sid]; st.write(f"**{sid} ({p_t:,.1f}g)**")
-                st.markdown(f'<div class="etapa-box" style="background-color: {sr.get("c","rgba(200,200,200,0.3)")};">', unsafe_allow_html=True)
-                f_sr = p_t / sum([v for k,v in sr.items() if k != 'col' and k != 'c'])
-                for sk, sv in sr.items():
-                    if sk not in ['col', 'c']: st.checkbox(f"{sk}: {sv*f_sr:,.1f}g", key=f"s_{sid}_{sk}"); final_master_inv[sk] = final_master_inv.get(sk,0)+sv*f_sr
-                st.markdown('</div>', unsafe_allow_html=True)
+    # --- RENDER: PRODUCCIÓN ---
+    with tab_pes:
+        col_m, col_e = st.columns(2)
+        with col_m:
+            st.subheader("Masas")
+            for mid, items in batidos_lote.items():
+                m_dna = ING_RECETARIO[mid]
+                m_pes = sum([(DATABASE[it['fam']]['tallas'][it['tam']]*it['cant']) for it in items])
+                hb_p = (m_pes * 100) / sum([v for k,v in m_dna.items() if not k.startswith("_")])
+                st.write(f"**Lote {mid} ({m_pes:,.0f}g)**")
+                for k,v in m_dna.items():
+                    if not k.startswith("_"): st.checkbox(f"{k}: {v*hb_p/100:,.1f}g", key=f"c_p_{mid}_{k}")
+        with col_e:
+            st.subheader("Rellenos y Lágrimas")
+            for sid, ptot in complementos_lote.items():
+                if sid not in ING_RECETARIO: 
+                    st.write(f"• **{sid}:** {ptot} pzs/gr"); inv_compras[sid] = inv_compras.get(sid,0) + ptot; continue
+                s_dna = ING_RECETARIO[sid]
+                st.write(f"**{sid} ({ptot:,.0f}g)**")
+                fs = ptot / sum(s_dna.values())
+                for k,v in s_dna.items():
+                    st.checkbox(f"{k}: {v*fs:,.1f}g", key=f"c_s_{sid}_{k}")
+                    inv_compras[k] = inv_compras.get(k, 0) + (v*fs)
 
-    elif pagina == "🛒 Súper":
-        st.header("Lista de Insumos (Recalculada)")
-        # Sincronizamos compras totales recorriendo todo el arbol de nuevo
-        for k, v in sorted(final_master_inv.items()):
-            st.checkbox(f"{k}: **{v:,.1f}g**", key=f"mstr_{k}")
+    # --- RENDER: SÚPER ---
+    with tab_super:
+        st.header("Surtido Completo (Consolidado)")
+        for k, v in sorted(inv_compras.items()):
+            if not k.startswith("_"): st.checkbox(f"{k}: **{v:,.1f}g**", key=f"fin_{k}")
