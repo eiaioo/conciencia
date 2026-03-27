@@ -121,3 +121,32 @@ if st.session_state.master_comanda:
             m_dna = DB_MASAS[m_id]
             m_batch = sum([(CATALOGO[i['fam']].get("p_ber_man", {}).get(i['esp'], CATALOGO[i['fam']]['tam'][i['tam']]) * i['can']) / m_dna['merma'] for i in items])
             h_b = (m_batch * 100) / sum(m_dna['receta'].values())
+            
+            st.markdown(f"#### 🛠️ Lote: {m_id} ({m_batch:,.1f}g)")
+            c1, c2 = st.columns([0.3, 0.7])
+            with c1:
+                st.write("**Masa Principal**")
+                for k, v in m_dna['receta'].items():
+                    gr = v*h_b/100; st.write(f"• {k}: {gr:,.1f}g"); master_inv[k] = master_inv.get(k, 0) + gr
+            with c2:
+                for it in items:
+                    st.success(f"{it['can']}x {it['esp']} ({it['tam']}) — {it['cli']}")
+
+    with t_cli:
+        for i, p in enumerate(st.session_state.master_comanda):
+            c1, c2, c3 = st.columns([0.4, 0.3, 0.3])
+            c1.write(f"👤 **{p['cliente']}**")
+            u_wa = f"https://wa.me/521{p['whatsapp']}?text="
+            c2.link_button("✅ Confirmar", u_wa + "Pedido Recibido")
+            c3.link_button("🚀 Listo", u_wa + "Listo!")
+            if st.button("❌", key=f"del_{i}"):
+                st.session_state.master_comanda.pop(i); st.rerun()
+
+    with t_sup:
+        st.header("🛒 Lista Maestra")
+        for k, v in sorted(master_inv.items()):
+            st.checkbox(f"{k}: **{v:,.1f}g**", key=f"sup_{k}")
+
+    if st.button("🗑️ LIMPIAR TODO EL DÍA"):
+        st.session_state.master_comanda = []
+        st.rerun()
