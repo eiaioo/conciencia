@@ -3,7 +3,7 @@ import pandas as pd
 import urllib.parse
 
 # ==========================================
-# CONFIGURACIÓN DE UI - BAJO CONTRASTE (30% OPACIDAD)
+# CONFIGURACIÓN DE UI - ACERO MATE INTEGRAL
 # ==========================================
 st.set_page_config(page_title="CONCIENCIA - Sistema Maestro", layout="wide")
 
@@ -12,43 +12,56 @@ if 'comanda' not in st.session_state: st.session_state.comanda = []
 if 'carrito_actual' not in st.session_state: st.session_state.carrito_actual = [] 
 if 'form_key' not in st.session_state: st.session_state.form_key = 0
 
-# Paleta de Colores (Opacidad 0.3 para efecto sutil)
-colores_etapas = {
-    "amarillo": "rgba(255, 235, 156, 0.3)",
-    "verde": "rgba(168, 230, 173, 0.3)",
-    "azul": "rgba(162, 210, 255, 0.3)",
-    "naranja": "rgba(255, 179, 140, 0.3)",
-}
-
+# Paleta de Colores Mate
 if st.session_state.tema_oscuro:
-    BG_HEX = "#121212"; CARD_HEX = "#1C1C1C"; TEXT_HEX = "#B0B0B0"; BORDER_HEX = "#2D2D2D"; BTN_HEX = "#3D4B53"
+    BG_HEX = "#121212"
+    CARD_HEX = "#1C1C1C"
+    TEXT_HEX = "#B0B0B0"
+    BORDER_HEX = "#2D2D2D"
+    BTN_HEX = "#3D4B53" # Gris Acero Mate
 else:
-    BG_HEX = "#F5F5F5"; CARD_HEX = "#FFFFFF"; TEXT_HEX = "#333333"; BORDER_HEX = "#E0E0E0"; BTN_HEX = "#E0E0E0"
+    BG_HEX = "#F5F5F5"
+    CARD_HEX = "#FFFFFF"
+    TEXT_HEX = "#333333"
+    BORDER_HEX = "#E0E0E0"
+    BTN_HEX = "#E0E0E0"
 
 st.markdown(f"""
     <style>
     .stApp {{ background-color: {BG_HEX}; color: {TEXT_HEX}; }}
     
-    /* Eliminar blanco de expanders */
-    div[data-testid="stExpander"] {{ background-color: {CARD_HEX} !important; border: 1px solid {BORDER_HEX} !important; border-radius: 8px !important; }}
-    div[data-testid="stExpander"] summary {{ background-color: {CARD_HEX} !important; color: {TEXT_HEX} !important; }}
-
-    /* Inputs y Selectores Oscuros */
+    /* Inputs y Selectores */
     div[data-baseweb="select"] > div, div[data-baseweb="input"], input {{
         background-color: {BG_HEX} !important; color: {TEXT_HEX} !important; border: 1px solid {BORDER_HEX} !important;
     }}
 
-    /* Botones Mate */
-    .stButton>button {{ background-color: {BTN_HEX} !important; color: {TEXT_HEX} !important; border: 1px solid {BORDER_HEX} !important; border-radius: 8px; }}
-    
-    /* Cajas de Etapas con Opacidad al 30% */
-    .etapa-box {{
-        padding: 18px;
-        border-radius: 12px;
-        margin-bottom: 12px;
-        border: 1px solid rgba(255,255,255,0.05);
-        color: {TEXT_HEX} !important; /* Texto se adapta al tema */
+    /* --- BOTONES DE CANTIDAD (ST.NUMBER_INPUT) --- */
+    div[data-testid="stNumberInput"] button {{
+        background-color: {BTN_HEX} !important;
+        color: {TEXT_HEX} !important;
+        border: 1px solid {BORDER_HEX} !important;
     }}
+    div[data-testid="stNumberInput"] svg {{
+        fill: {TEXT_HEX} !important;
+    }}
+
+    /* Botones Generales (+, Luna, WhatsApp) */
+    .stButton>button {{
+        background-color: {BTN_HEX} !important;
+        color: {TEXT_HEX} !important;
+        border: 1px solid {BORDER_HEX} !important;
+        border-radius: 8px;
+    }}
+
+    /* Eliminar blanco de expanders */
+    div[data-testid="stExpander"] {{ background-color: {CARD_HEX} !important; border: 1px solid {BORDER_HEX} !important; }}
+    div[data-testid="stExpander"] summary {{ background-color: {CARD_HEX} !important; color: {TEXT_HEX} !important; }}
+
+    /* Etiquetas de campo */
+    label, .stMarkdown p {{ color: {TEXT_HEX} !important; }}
+    
+    /* Etapas con opacidad 0.3 */
+    .etapa-box {{ padding: 18px; border-radius: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); color: #1a1a1a !important; }}
     .etapa-titulo {{ font-weight: bold; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 8px; opacity: 0.8; }}
     </style>
 """, unsafe_allow_html=True)
@@ -68,20 +81,20 @@ DB_MASAS = {
     "Masa de Conchas": {
         "receta": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla sin sal": 40, "Sal fina": 2.5, "Levadura seca": 1.8, "Vainilla": 2},
         "etapas": [
-            {"n": "1. Autólisis", "i": ["Harina de fuerza", "Huevo", "Leche entera"], "c": colores_etapas["amarillo"]},
-            {"n": "2. Activación", "i": ["Levadura seca", "Vainilla"], "c": colores_etapas["verde"]},
-            {"n": "3. Estructura", "i": ["Azúcar", "Sal fina"], "c": colores_etapas["azul"]},
-            {"n": "4. Enriquecimiento", "i": ["Mantequilla sin sal"], "c": colores_etapas["naranja"]}
+            {"n": "1. Autólisis", "i": ["Harina de fuerza", "Huevo", "Leche entera"], "c": "rgba(212, 163, 115, 0.3)"},
+            {"n": "2. Activación", "i": ["Levadura seca", "Vainilla"], "c": "rgba(183, 183, 164, 0.3)"},
+            {"n": "3. Estructura", "i": ["Azúcar", "Sal fina"], "c": "rgba(165, 165, 141, 0.3)"},
+            {"n": "4. Enriquecimiento", "i": ["Mantequilla sin sal"], "c": "rgba(107, 112, 92, 0.3)"}
         ],
-        "merma": 1.0
+        "merma": 1.0, "factor": 1.963
     },
     "Masa Brioche Rosca": {
         "receta": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura fresca": 0.35, "Sal fina": 2.2, "Agua Azahar": 0.6},
         "etapas": [
-            {"n": "1. Base", "i": ["Harina de fuerza", "Huevo", "Yemas", "Leche entera"], "c": colores_etapas["amarillo"]},
-            {"n": "2. Fermento", "i": ["Levadura fresca"], "c": colores_etapas["verde"]},
-            {"n": "3. Sabor", "i": ["Azúcar", "Miel", "Sal fina", "Agua Azahar"], "c": colores_etapas["azul"]},
-            {"n": "4. Grasa", "i": ["Mantequilla sin sal"], "c": colores_etapas["naranja"]}
+            {"n": "1. Base", "i": ["Harina de fuerza", "Huevo", "Yemas", "Leche entera"], "c": "rgba(212, 163, 115, 0.3)"},
+            {"n": "2. Fermento", "i": ["Levadura fresca"], "c": "rgba(183, 183, 164, 0.3)"},
+            {"n": "3. Sabor", "i": ["Azúcar", "Miel", "Sal fina", "Agua Azahar"], "c": "rgba(165, 165, 141, 0.3)"},
+            {"n": "4. Grasa", "i": ["Mantequilla sin sal"], "c": "rgba(107, 112, 92, 0.3)"}
         ],
         "merma": 1.0, "tz_ratio": 0.025, "tz_liq": 1
     }
@@ -96,7 +109,7 @@ DB_COMPLEMENTOS = {
 
 ARBOL = {
     "Conchas": {"espec": {"Vainilla": ["Lágrima de Vainilla"], "Chocolate": ["Lágrima de Chocolate"]}, "tamaños": {"Estándar": 95, "Mini": 35}, "p_ex": {"Estándar": 30, "Mini": 10}, "masa": "Masa de Conchas"},
-    "Rosca de reyes": {"espec": {"Tradicional": {"fijos": ["Lágrima de Vainilla", "Decoración Rosca"], "rellenos": ["Sin Relleno", "Crema Pastelera Vainilla"]}}, "tamaños": {"FAMILIAR": 1450, "MEDIANA": 650, "MINI": 120}, "p_relleno_map": {"FAMILIAR": 450, "MEDIANA": 200, "MINI": 35}, "masa": "Masa Brioche Rosca"}
+    "Rosca de reyes": {"espec": {"Tradicional": {"fijos": ["Lágrima de Vainilla", "Decoración Rosca"], "rellenos": ["Sin Relleno", "Crema Pastelera Vainilla"]}}, "tamaños": {"FAMILIAR": 1450, "MEDIANA": 650, "MINI": 120, "CONCHA-ROSCA": 90}, "p_relleno_map": {"FAMILIAR": 450, "MEDIANA": 200, "MINI": 35, "CONCHA-ROSCA": 25}, "masa": "Masa Brioche Rosca"}
 }
 
 # ==========================================
@@ -106,6 +119,7 @@ ARBOL = {
 st.subheader("🥐 Comanda Técnica CONCIENCIA")
 
 with st.expander("👤 1. Datos del Cliente", expanded=len(st.session_state.carrito_actual) == 0):
+    fk_c = st.session_state.form_key
     c1, c2 = st.columns(2)
     cli_n = c1.text_input("Nombre", key=f"cn_{st.session_state.form_key}")
     cli_w = c2.text_input("WhatsApp", key=f"cw_{st.session_state.form_key}")
