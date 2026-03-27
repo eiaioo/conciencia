@@ -10,23 +10,28 @@ st.set_page_config(page_title="CONCIENCIA - Sistema Maestro", layout="wide")
 DB_MASAS = {
     "Masa de Conchas": {
         "receta": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla sin sal": 40, "Sal fina": 2.5, "Levadura seca": 1.8, "Vainilla": 2},
-        "merma": 1.0, "factor_panadero": 1.963, "SOP": ["1. Autólisis: Harina, huevo, leche (20 min).", "2. Levadura + Vainilla.", "3. Azúcar en 3 tandas.", "4. Sal y desarrollar gluten.", "5. Mantequilla en bloques.", "6. T° final: 24-26°C."]
+        "merma": 1.0, "factor_panadero": 1.963, 
+        "SOP": ["1. Autólisis: Harina, huevo, leche (20 min).", "2. Levadura + Vainilla.", "3. Azúcar en 3 tandas.", "4. Sal y desarrollar gluten.", "5. Incorporar mantequilla en bloques.", "6. T° final: 24-26°C."]
     },
     "Masa de Berlinas": {
         "receta": {"Harina de fuerza": 100, "Azúcar": 22, "Mantequilla sin sal": 20, "Huevo": 25, "Leche entera": 22, "Sal fina": 1.8, "Levadura seca": 1.0},
-        "merma": 0.85, "tz_ratio": 0.05, "tz_liq": 5, "SOP": ["1. Preparar TZ (5% harina) y enfriar.", "2. Amasar hasta 70% gluten antes de azúcar.", "3. Mantequilla al final.", "4. Fritura a 172°C."]
+        "merma": 0.85, "tz_ratio": 0.05, "tz_liq": 5, 
+        "SOP": ["1. Preparar TZ (5% harina) y enfriar.", "2. Amasar hasta 70% gluten antes de azúcar.", "3. Mantequilla al final.", "4. Fritura a 172°C."]
     },
     "Masa Brioche Roles": {
         "receta": {"Harina de fuerza": 93, "Huevo": 30, "Leche entera": 5, "Levadura fresca": 1, "Sal fina": 1.8, "Azúcar": 16, "Mantequilla sin sal": 17},
-        "merma": 1.0, "tz_fijo_h": 70, "tz_fijo_l": 350, "SOP": ["1. TZ frío + Huevo + Secos.", "2. Autólisis 15 min.", "3. Gluten antes de azúcar.", "4. Mantequilla en 3 tandas.", "5. DDT 24°C."]
+        "merma": 1.0, "tz_fijo_h": 70, "tz_fijo_l": 350, 
+        "SOP": ["1. TZ frío + Huevo + Secos.", "2. Autólisis 15 min.", "3. Gluten antes de azúcar.", "4. Mantequilla en 3 tandas.", "5. DDT 24°C."]
     },
     "Masa Red Velvet": {
         "receta": {"Harina de fuerza": 100, "Azúcar": 16, "Mantequilla sin sal": 17, "Huevo": 30, "Leche entera": 4, "Sal fina": 1.8, "Levadura instantánea": 1.0, "Cacao en polvo": 0.8, "Colorante Rojo": 0.7, "Vinagre": 0.3},
-        "merma": 1.0, "tz_ratio": 0.07, "tz_liq": 5, "SOP": ["1. Colorante en líquidos.", "2. Cacao en secos.", "3. Proceso Brioche Master."]
+        "merma": 1.0, "tz_ratio": 0.07, "tz_liq": 5, 
+        "SOP": ["1. Colorante en líquidos.", "2. Cacao en secos.", "3. Proceso Brioche Master."]
     },
     "Masa Brioche Rosca": {
         "receta": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura fresca": 0.35, "Sal fina": 2.2, "Agua Azahar": 0.6},
-        "merma": 1.0, "tz_ratio": 0.025, "tz_liq": 1, "SOP": ["1. TZ 1:1.", "2. Miel y Azahar al final.", "3. Bloque 12h a 4°C."]
+        "merma": 1.0, "tz_ratio": 0.025, "tz_liq": 1, 
+        "SOP": ["1. TZ 1:1.", "2. Miel y Azahar al final.", "3. Bloque 12h a 4°C."]
     },
     "Masa Muerto Tradicional": {
         "receta": {"Harina de fuerza": 100, "Leche entera": 25, "Yemas": 24, "Claras": 16, "Azúcar": 20, "Mantequilla sin sal": 25, "Sal fina": 2, "Levadura fresca": 3, "Agua Azahar": 2, "Ralladura Naranja": 1},
@@ -54,13 +59,14 @@ DB_COMPLEMENTOS = {
     "Crema Pastelera Chocolate": {"Leche entera": 480, "Yemas": 100, "Azúcar": 100, "Fécula de Maíz": 45, "Chocolate 60%": 120, "SOP": "Chocolate post-fuego."},
     "Crema Pastelera Turin": {"Leche entera": 450, "Yemas": 100, "Azúcar": 90, "Fécula de Maíz": 45, "Chocolate Turin": 120, "Mantequilla sin sal": 20, "SOP": "Chocolate Turin fuera del fuego."},
     "Crema Ruby 50/50": {"Leche entera": 131.5, "Crema para batir 35%": 131.5, "Yemas": 53, "Azúcar": 63, "Fécula de Maíz": 24, "Mantequilla sin sal": 16, "Sal fina": 0.8, "SOP": "Ebullición real 30s."},
-    "Glaseado Turin": {"Azúcar Glass": 200, "Choco Cuerpos": 100, "Leche entera": 50, "Cabeza de Conejo": 1, "SOP": "Choco 45°C + Leche 80°C. Coronar con cabeza."},
+    "Glaseado de Chocolate Ruby": {"Chocolate Ruby": 80, "Azúcar Glass": 160, "Leche entera": 50, "SOP": "Relación 4:2:1.25. Aplicar sobre pan frío."},
+    "Glaseado Turin": {"Azúcar Glass": 200, "Chocolate Turin Cuerpos": 100, "Leche entera": 50, "Cabeza de Conejo": 1, "SOP": "Choco 45°C + Leche 80°C. Coronar con cabeza."},
     "Schmear Canela": {"Mantequilla sin sal": 200, "Azúcar Mascabada": 300, "Canela": 25, "SOP": "Pasta densa opaca (pomada)."},
     "Schmear Red Velvet": {"Mantequilla sin sal": 6, "Azúcar": 6, "Cacao": 1.8, "Nuez": 4, "Chocolate amargo": 4, "SOP": "Integrar todo hasta pasta."},
     "Inclusión Frutos Rojos": {"Pasas": 4, "Arándanos": 4, "Té Earl Grey": 2, "Vainilla": 0.5, "SOP": "Hidratar en té caliente 20m. Secar."},
     "Inclusión Manzana": {"Orejón de Manzana": 8, "Agua tibia": 2, "SOP": "Hidratar 10m. Secar."},
     "Rebozado Muerto": {"Mantequilla sin sal": 6.5, "Azúcar": 12.5, "SOP": "Barnizar caliente + azúcar naranja."},
-    "Decoración Rosca": {"Ate": 50, "Higo": 20, "Cereza": 10, "SOP": "Colocación tradicional."}
+    "Decoración Tradicional Rosca": {"Ate de colores": 50, "Higo en almíbar": 20, "Cereza marrasquino": 10, "SOP": "Colocación tradicional."}
 }
 
 ARBOL = {
@@ -69,9 +75,9 @@ ARBOL = {
         "tamaños": {"Estándar": 95, "Mini": 35}, "p_ex": {"Estándar": 30, "Mini": 10}, "masa": "Masa de Conchas"
     },
     "Berlinas": {
-        "espec": {"Vainilla": ["Crema Pastelera Vainilla"], "Ruby v2.0": ["Crema Ruby 50/50", "Glaseado de Chocolate Ruby"], "Turín": ["Crema Pastelera Turin", "Glaseado Turin"]},
+        "espec": {"Vainilla": ["Crema Pastelera Vainilla"], "Ruby v2.0": ["Crema Ruby 50/50", "Glaseado de Chocolate Ruby"], "Turín": ["Crema Pastelera Especial Turin", "Glaseado Turin"]},
         "tamaños": {"Estándar": 60}, "masa": "Masa de Berlinas",
-        "override_p": {"Ruby v2.0": (70, {"Crema Ruby 50/50": 40, "Glaseado de Chocolate Ruby": 8}), "Turín": (60, {"Crema Pastelera Turin": 80, "Glaseado Turin": 16}), "Vainilla": (60, {"Crema Pastelera Vainilla": 80})}
+        "override_p": {"Ruby v2.0": (70, {"Crema Ruby 50/50": 40, "Glaseado de Chocolate Ruby": 8}), "Turín": (60, {"Crema Pastelera Especial Turin": 80, "Glaseado Turin": 16}), "Vainilla": (60, {"Crema Pastelera Vainilla": 80})}
     },
     "Rollos": {
         "espec": {"Tradicional": ["Schmear Canela", "Inclusión Frutos Rojos"], "Manzana": ["Schmear Canela", "Inclusión Manzana"], "Red Velvet": ["Schmear Red Velvet"]},
@@ -79,8 +85,8 @@ ARBOL = {
     },
     "Rosca de reyes": {
         "espec": {
-            "Tradicional": {"fijos": ["Lágrima de Vainilla", "Decoración Rosca"], "rellenos": ["Sin Relleno", "Crema Pastelera Vainilla", "Crema Pastelera Chocolate"]},
-            "Turín": {"fijos": ["Lágrima de Chocolate", "Glaseado Turin"], "rellenos": ["Sin Relleno", "Crema Pastelera Turin"]}
+            "Tradicional": {"fijos": ["Lágrima de Vainilla", "Decoración Tradicional Rosca"], "rellenos": ["Sin Relleno", "Crema Pastelera Vainilla", "Crema Pastelera Chocolate"]},
+            "Turín": {"fijos": ["Lágrima de Chocolate", "Glaseado Turin"], "rellenos": ["Sin Relleno", "Crema Pastelera Especial Turin"]}
         },
         "tamaños": {"FAMILIAR": 1450, "MEDIANA": 650, "MINI": 120, "CONCHA-ROSCA": 90},
         "p_relleno_map": {"FAMILIAR": 450, "MEDIANA": 200, "MINI": 35, "CONCHA-ROSCA": 25},
@@ -125,17 +131,17 @@ with st.expander("📝 Cargar Nuevo Producto", expanded=True):
 if st.session_state.comanda:
     if st.button("🗑️ Limpiar Todo"): st.session_state.comanda = []; st.rerun()
 
-    # --- Cálculos Consolidados ---
     lotes_masa = {}
     sub_recetas_dia = {}
     compras_totales = {}
 
+    # Agrupar Masas
     for item in st.session_state.comanda:
         m_id = ARBOL[item['fam']].get("override", {}).get(item['esp'], ARBOL[item['fam']]['masa'])
         if m_id not in lotes_masa: lotes_masa[m_id] = []
         lotes_masa[m_id].append(item)
 
-    # Procesar todo antes de mostrar
+    # Cálculo Global Compras
     for m_id, items in lotes_masa.items():
         m_dna = DB_MASAS[m_id]
         m_batch_gr = sum([(ARBOL[i['fam']].get("override_p", {}).get(i['esp'], (ARBOL[i['fam']]['tamaños'][i['tam']],0))[0] * i['cant']) / m_dna['merma'] for i in items])
@@ -155,28 +161,26 @@ if st.session_state.comanda:
         for s_id in lista:
             if s_id not in sub_recetas_dia: sub_recetas_dia[s_id] = {"ing": {}, "piezas": 0}
             sub_recetas_dia[s_id]["piezas"] += item['cant']
-            
-            # Peso unitario extra
+            # Determinar peso objetivo
             if item['fam'] == "Rosca de reyes" and s_id == item['rel']: p_u = cfg["p_relleno_map"][item['tam']]
             elif item['fam'] == "Conchas": p_u = cfg["p_ex"][item['tam']]
             elif "override_p" in cfg and item['esp'] in cfg["override_p"]: p_u = cfg["override_p"][item['esp']][1].get(s_id, 15)
             else: p_u = 15
-            
             p_batch = p_u * item['cant']
             s_rec = {k: v for k, v in DB_COMPLEMENTOS[s_id].items() if k != "SOP"}
             fact = p_batch / sum(s_rec.values())
             for ing, val in s_rec.items():
-                gr = val * (item['cant'] if "Rebozado" in s_id or "Decoración" in s_id else fact)
+                gr = val * (item['cant'] if "Rebozado" in s_id or "Decoración" in s_id or "Cabeza" in ing else fact)
                 sub_recetas_dia[s_id]["ing"][ing] = sub_recetas_dia[s_id]["ing"].get(ing, 0) + gr
                 compras_totales[ing] = compras_totales.get(ing, 0) + gr
 
     # --- PESTAÑAS ---
     tabs = st.tabs(["📋 Resumen Visual", "🛒 Lista Maestra"] + list(lotes_masa.keys()) + sorted(list(sub_recetas_dia.keys())))
 
-    # T1: RESUMEN (La pantalla que querías de vuelta)
+    # T1: RESUMEN VISUAL (DESGLOSE COMPLETO)
     with tabs[0]:
         for m_id, items in lotes_masa.items():
-            st.markdown(f"### 🛠️ Batido: {m_id}")
+            st.markdown(f"## 🛠️ Batido: {m_id}")
             m_dna = DB_MASAS[m_id]
             m_batch_gr = sum([(ARBOL[it['fam']].get("override_p", {}).get(it['esp'], (ARBOL[it['fam']]['tamaños'][it['tam']],0))[0] * it['cant']) / m_dna['merma'] for it in items])
             h_base = (m_batch_gr * 100) / sum([v for k,v in m_dna['receta'].items()])
@@ -190,48 +194,61 @@ if st.session_state.comanda:
             for idx, it in enumerate(items):
                 with cols[idx+1]:
                     st.success(f"**{it['esp']} ({it['tam']})**")
-                    # Aquí mostramos los complementos de ese item específico
-                    subs_item = ARBOL[it['fam']]["espec"][it['esp']]
-                    lista_it = subs_item["fijos"].copy() if isinstance(subs_item, dict) else subs_item.copy()
+                    cfg_it = ARBOL[it['fam']]
+                    subs_it = cfg_it["espec"][it['esp']]
+                    lista_it = subs_it["fijos"].copy() if isinstance(subs_it, dict) else subs_it.copy()
                     if it['rel'] not in ["N/A", "Sin Relleno"]: lista_it.append(it['rel'])
                     
                     for s_id in lista_it:
-                        if it['fam'] == "Rosca de reyes" and s_id == it['rel']: p_u = ARBOL[it['fam']]["p_relleno_map"][it['tam']]
-                        elif it['fam'] == "Conchas": p_u = ARBOL[it['fam']]["p_ex"][it['tam']]
-                        else: p_u = 15
-                        st.markdown(f"*{s_id} ({p_u*it['cant']:,.1f}g)*")
+                        # Determinar peso unitario
+                        if it['fam'] == "Rosca de reyes" and s_id == it['rel']: p_u_it = cfg_it["p_relleno_map"][it['tam']]
+                        elif it['fam'] == "Conchas": p_u_it = cfg_it["p_ex"][it['tam']]
+                        elif "override_p" in cfg_it and it['esp'] in cfg_it["override_p"]: p_u_it = cfg_it["override_p"][it['esp']][1].get(s_id, 15)
+                        else: p_u_it = 15
+                        
+                        peso_sub_it = p_u_it * it['cant']
+                        st.markdown(f"**{s_id} ({peso_sub_it:,.1f}g)**")
+                        
+                        # DESGLOSE DE INGREDIENTES DEL COMPLEMENTO
+                        s_rec_dna = {k: v for k, v in DB_COMPLEMENTOS[s_id].items() if k != "SOP"}
+                        fact_it = peso_sub_it / sum(s_rec_dna.values())
+                        for ing_s, val_s in s_rec_dna.items():
+                            if "Cabeza" in ing_s:
+                                st.write(f"- {ing_s}: {val_s*it['cant']} pz")
+                            else:
+                                gr_s = val_s * (it['cant'] if "Rebozado" in s_id or "Decoración" in s_id else fact_it)
+                                st.write(f"- {ing_s}: {gr_s:,.1f}g")
 
     # T2: LISTA MAESTRA
     with tabs[1]:
         st.header("📦 Surtido de Almacén")
         for insumo, cant in sorted(compras_totales.items()):
             c1, c2 = st.columns([0.05, 0.95])
+            label_txt = f"{insumo}: **{cant:,.1f}**"
             if c1.checkbox("", key=f"main_{insumo}"):
-                c2.markdown(f"~~{insumo}: {cant:,.1f}~~")
-            else: c2.write(f"**{insumo}:** {cant:,.1f}")
+                c2.markdown(f"~~{label_txt}~~", unsafe_allow_html=True)
+            else: c2.markdown(label_txt, unsafe_allow_html=True)
 
-    # T-MASAS (Detalle + SOP)
+    # T-MASAS (Checklist + SOP)
     for i, m_id in enumerate(lotes_masa.keys()):
         with tabs[i+2]:
-            st.header(f"🥣 Receta Detallada: {m_id}")
+            st.header(f"🥣 Masa: {m_id}")
             m_dna = DB_MASAS[m_id]
-            # Recalcular base para esta pestaña
             m_batch = sum([(ARBOL[it['fam']].get("override_p", {}).get(it['esp'], (ARBOL[it['fam']]['tamaños'][it['tam']],0))[0] * it['cant']) / m_dna['merma'] for it in lotes_masa[m_id]])
             h_b = (m_batch * 100) / sum(m_dna['receta'].values())
-            
             for ing, porc in m_dna['receta'].items():
                 c1, c2 = st.columns([0.05, 0.95])
                 if c1.checkbox(f"{ing}", key=f"det_{m_id}_{ing}"):
                     c2.markdown(f"~~{ing}: {porc*h_b/100:,.1f}g~~")
                 else: c2.write(f"**{ing}:** {porc*h_b/100:,.1f}g")
-            st.info("### 📝 Procedimiento (SOP)")
+            st.info("### 📝 SOP")
             for s in m_dna["SOP"]: st.write(s)
 
-    # T-SUBRECETAS (Detalle + SOP)
+    # T-SUBRECETAS (Checklist + SOP)
     offset = 2 + len(lotes_masa)
     for i, (s_id, data) in enumerate(sorted(sub_recetas_dia.items())):
         with tabs[offset + i]:
-            st.header(f"✨ Sub-receta: {s_id}")
+            st.header(f"✨ {s_id}")
             for ing, gr in data['ing'].items():
                 c1, c2 = st.columns([0.05, 0.95])
                 if c1.checkbox(f"{ing}", key=f"sub_det_{s_id}_{ing}"):
