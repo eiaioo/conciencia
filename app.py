@@ -3,43 +3,42 @@ import pandas as pd
 import urllib.parse
 
 # ==========================================
-# 1. CONFIGURACIÓN VISUAL (MODO CLARO ESTABLE)
+# 1. INICIALIZACIÓN Y BLINDAJE DE DATOS
 # ==========================================
 st.set_page_config(page_title="CONCIENCIA - Sistema Maestro", layout="wide")
+
+# Forzar limpieza si hay versiones antiguas para evitar el KeyError
+if 'v_check' not in st.session_state:
+    st.session_state.clear()
+    st.session_state.v_check = "66.0"
 
 if 'comanda' not in st.session_state: st.session_state.comanda = []
 if 'carrito' not in st.session_state: st.session_state.carrito = []
 if 'form_key' not in st.session_state: st.session_state.form_key = 0
 
-# Estilo para asegurar que el texto sea negro y los campos legibles
+# Estilo Claro de Alto Contraste (Cero errores de visibilidad)
 st.markdown("""
     <style>
     .stApp { background-color: #FFFFFF; color: #000000; }
     h1, h2, h3, h4, p, span, label { color: #000000 !important; font-weight: 500; }
-    div[data-testid="stExpander"] { border: 1px solid #DDDDDD !important; border-radius: 8px; }
-    /* Estilo para los botones */
-    .stButton > button { 
-        border-radius: 8px; 
-        font-weight: bold; 
-        background-color: #F0F2F6; 
-        color: #000000;
-        border: 1px solid #CCCCCC;
-    }
+    .stButton > button { border-radius: 8px; font-weight: bold; background-color: #F0F2F6; border: 1px solid #CCCCCC; }
+    div[data-testid="stExpander"] { border: 1px solid #DDDDDD !important; border-radius: 8px; background-color: #FDFDFD; }
+    .etapa-box { padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #DDDDDD; color: #000000 !important; }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. BASE DE DATOS TÉCNICA TOTAL
+# 2. BASE DE DATOS MAESTRA (AUDITADA)
 # ==========================================
 
 DB_MASAS = {
-    "Masa de Conchas": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla sin sal": 40, "Sal fina": 2.5, "Levadura seca": 1.8, "Vainilla": 2, "merma": 1.0},
-    "Masa de Berlinas": {"Harina de fuerza": 100, "Azúcar": 22, "Mantequilla sin sal": 20, "Huevo": 25, "Leche entera": 22, "Sal fina": 1.8, "Levadura seca": 1.0, "merma": 0.85},
-    "Masa Brioche Roles": {"Harina de fuerza": 93, "Huevo": 30, "Leche entera": 5, "Levadura fresca": 1, "Sal fina": 1.8, "Azúcar": 16, "Mantequilla sin sal": 17, "merma": 1.0},
-    "Masa Red Velvet": {"Harina de fuerza": 100, "Azúcar": 16, "Mantequilla sin sal": 17, "Huevo": 30, "Leche entera": 4, "Sal fina": 1.8, "Levadura": 1, "Cacao": 0.8, "Rojo": 0.7, "merma": 1.0},
-    "Masa Brioche Rosca": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura": 0.35, "Sal fina": 2.2, "Agua Azahar": 0.6, "merma": 1.0},
-    "Masa Muerto": {"Harina de fuerza": 100, "Leche entera": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla sin sal": 25, "Levadura": 5, "Sal fina": 1.8, "Polvo Guayaba": 5, "merma": 1.0},
-    "Mezcla Brownie": {"Mantequilla": 330, "Azúcar Blanca": 275, "Chocolate": 165, "Harina de fuerza": 190, "merma": 1.0}
+    "Masa de Conchas": {"receta": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla sin sal": 40, "Sal fina": 2.5, "Levadura seca": 1.8, "Vainilla": 2}, "merma": 1.0, "factor": 1.963},
+    "Masa de Berlinas": {"receta": {"Harina de fuerza": 100, "Azúcar": 22, "Mantequilla sin sal": 20, "Huevo": 25, "Leche entera": 22, "Sal fina": 1.8, "Levadura seca": 1.0}, "merma": 0.85, "tz": (0.05, 5)},
+    "Masa Brioche Roles": {"receta": {"Harina de fuerza": 93, "Huevo": 30, "Leche entera": 5, "Levadura fresca": 1, "Sal fina": 1.8, "Azúcar": 16, "Mantequilla sin sal": 17}, "merma": 1.0, "tz_f": (70, 350)},
+    "Masa Red Velvet": {"receta": {"Harina de fuerza": 100, "Azúcar": 16, "Mantequilla sin sal": 17, "Huevo": 30, "Leche entera": 4, "Sal fina": 1.8, "Levadura": 1.0, "Cacao": 0.8, "Rojo": 0.7, "Vinagre": 0.3}, "merma": 1.0, "tz": (0.07, 5)},
+    "Masa Brioche Rosca": {"receta": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura": 0.35, "Sal fina": 2.2, "Agua Azahar": 0.6}, "merma": 1.0, "tz": (0.025, 1)},
+    "Masa Muerto": {"receta": {"Harina de fuerza": 100, "Leche entera": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla sin sal": 25, "Levadura fresca": 5, "Sal fina": 1.8, "Polvo Guayaba": 5}, "merma": 1.0, "huesos": True},
+    "Mezcla Brownie": {"receta": {"Mantequilla": 330, "Azúcar": 275, "Chocolate": 165, "Harina": 190}, "merma": 1.0, "fijo": True}
 }
 
 DB_COMPLEMENTOS = {
@@ -54,18 +53,19 @@ DB_COMPLEMENTOS = {
     "Crema Chocolate": {"Leche": 480, "Yemas": 100, "Azúcar": 100, "Fécula": 45, "Choco 60%": 120},
     "Crema Turin": {"Leche": 450, "Yemas": 100, "Azúcar": 90, "Fécula": 45, "Choco Turin": 120},
     "Crema Ruby": {"Leche": 131.5, "Crema 35": 131.5, "Yemas": 53, "Azúcar": 63, "Fécula": 24},
+    "Glaseado Turin": {"Azúcar Glass": 200, "Choco Cuerpos": 100, "Leche": 50, "Cabeza": 1},
     "Schmear Canela": {"Mantequilla": 200, "Azúcar": 300, "Canela": 25},
     "Decoración Rosca": {"Ate": 50, "Higo": 20, "Cereza": 10},
     "Rebozado Muerto": {"Mantequilla": 6.5, "Azúcar": 12.5}
 }
 
 CATALOGO = {
-    "Conchas": {"espec": ["Vainilla", "Chocolate", "Matcha", "Fresa", "Mazapán", "Oreo", "Pinole"], "tamaños": {"Estándar": 95, "Mini": 35}, "p_ex": {"Estándar": 30, "Mini": 10}, "masa": "Masa de Conchas"},
-    "Rosca de reyes": {"espec": ["Tradicional", "Chocolate", "Turín"], "tamaños": {"FAMILIAR": 1450, "MEDIANA": 650, "MINI": 120, "CONCHA-ROSCA": 90}, "p_rell_map": {"FAMILIAR": 450, "MEDIANA": 200, "MINI": 35, "CONCHA-ROSCA": 25}, "masa": "Masa Brioche Rosca"},
-    "Berlinas": {"espec": ["Vainilla", "Chocolate", "Ruby v2.0"], "tamaños": {"Estándar": 60}, "masa": "Masa de Berlinas", "p_ber_man": {"Ruby v2.0": 70}},
-    "Rollos": {"espec": ["Canela", "Manzana", "Red Velvet"], "tamaños": {"Individual": 90}, "masa": "Masa Brioche Roles", "masa_ov": {"Red Velvet": "Masa Red Velvet"}},
-    "Pan de muerto": {"espec": ["Tradicional", "Guayaba"], "tamaños": {"Estándar": 85}, "masa": "Masa Muerto"},
-    "Brownies": {"espec": ["Turín"], "tamaños": {"Molde 20x20": 1}, "masa": "Mezcla Brownie"}
+    "Conchas": {"esp": ["Vainilla", "Chocolate", "Matcha", "Fresa", "Mazapán", "Oreo", "Pinole"], "tam": {"Estándar": 95, "Mini": 35}, "p_ex": {"Estándar": 30, "Mini": 10}, "m": "Masa de Conchas"},
+    "Rosca de reyes": {"esp": ["Tradicional", "Chocolate", "Turín"], "tam": {"FAMILIAR": 1450, "MEDIANA": 650, "MINI": 120, "CONCHA-ROSCA": 90}, "p_rel_map": {"FAMILIAR": 450, "MEDIANA": 200, "MINI": 35, "CONCHA-ROSCA": 25}, "m": "Masa Brioche Rosca"},
+    "Berlinas": {"esp": ["Vainilla", "Chocolate", "Ruby v2.0"], "tam": {"Estándar": 60}, "m": "Masa de Berlinas", "p_ber_man": {"Ruby v2.0": 70}},
+    "Rollos": {"esp": ["Canela", "Manzana", "Red Velvet"], "tam": {"Individual": 90}, "m": "Masa Brioche Roles", "m_ov": {"Red Velvet": "Masa Red Velvet"}},
+    "Pan de muerto": {"esp": ["Tradicional", "Guayaba"], "tam": {"Estándar": 85}, "m": "Masa Muerto"},
+    "Brownies": {"esp": ["Turín"], "tam": {"Molde 20x20": 1}, "m": "Mezcla Brownie"}
 }
 
 # ==========================================
@@ -75,95 +75,78 @@ CATALOGO = {
 st.title("🥐 Comanda Técnica CONCIENCIA")
 
 with st.expander("👤 1. Datos del Cliente", expanded=True):
-    col_c1, col_c2 = st.columns(2)
-    cli_n = col_c1.text_input("Nombre del Cliente", key="cli_name")
-    cli_w = col_c2.text_input("WhatsApp", key="cli_wa")
+    c1, c2 = st.columns(2)
+    cli_nombre = c1.text_input("Nombre del Cliente", key="input_cli_n")
+    cli_whatsapp = c2.text_input("WhatsApp", key="input_cli_w")
 
-st.write("### 🍞 2. Agregar Panes al Pedido")
+st.write("### 🍞 2. Seleccionar Panes")
 fk = st.session_state.form_key
-c1, c2, c3, c4, c5 = st.columns([2, 2, 1.5, 1, 0.6])
+c3, c4, c5, c6, c7 = st.columns([2, 2, 1.5, 1, 0.6])
 
-fam_sel = c1.selectbox("Familia", ["-"] + list(CATALOGO.keys()), key=f"f_{fk}")
-
-if fam_sel != "-":
-    esp_sel = c2.selectbox("Especialidad", CATALOGO[fam_sel]["espec"], key=f"e_{fk}")
-    tam_sel = c3.selectbox("Tamaño", list(CATALOGO[fam_sel]["tamaños"].keys()), key=f"t_{fk}")
-    can_sel = c4.number_input("Cant", min_value=1, value=1, key=f"c_{fk}")
-    
-    # Este es el truco para que el botón de + no esté "chueco"
-    c5.write("##") 
-    if c5.button("➕", key=f"btn_{fk}"):
-        st.session_state.carrito.append({"fam": fam_sel, "esp": esp_sel, "tam": tam_sel, "can": can_sel})
+f_sel = c3.selectbox("Familia", ["-"] + list(CATALOGO.keys()), key=f"f_{fk}")
+if f_sel != "-":
+    e_sel = c4.selectbox("Especialidad", CATALOGO[f_sel]["esp"], key=f"e_{fk}")
+    t_sel = c5.selectbox("Tamaño", list(CATALOGO[f_sel]["tam"].keys()), key=f"t_{fk}")
+    c_sel = c6.number_input("Cant", min_value=1, value=1, key=f"c_{fk}")
+    c7.write("##")
+    if c7.button("➕", key=f"add_{fk}"):
+        st.session_state.carrito.append({"fam": f_sel, "esp": e_sel, "tam": t_sel, "can": c_sel})
         st.session_state.form_key += 1
         st.rerun()
 
 if st.session_state.carrito:
-    st.info(f"🛒 Carrito para: {cli_n}")
+    st.info(f"🛒 Pedido actual para: {cli_nombre}")
     for it in st.session_state.carrito:
         st.write(f"- {it['can']}x {it['fam']} {it['esp']} ({it['tam']})")
-    
-    if st.button("✅ FINALIZAR Y GUARDAR PEDIDO COMPLETO"):
-        if cli_n:
-            st.session_state.comanda.append({"cliente": cli_n, "wa": cli_w, "items": st.session_state.carrito.copy()})
+    if st.button("✅ GUARDAR PEDIDO Y FINALIZAR"):
+        if cli_nombre:
+            st.session_state.comanda.append({"cliente": cli_nombre, "wa": cli_whatsapp, "items": st.session_state.carrito.copy()})
             st.session_state.carrito = []
-            # Limpiamos los campos del cliente para el siguiente
             st.rerun()
-        else: st.error("Ingresa el nombre del cliente")
 
 # ==========================================
-# 4. HOJAS DE PRODUCCIÓN Y RESUMEN
+# 4. MOTOR DE PRODUCCIÓN (BATCHES)
 # ==========================================
 
 if st.session_state.comanda:
     st.divider()
-    t_res, t_cli, t_prod, t_sup = st.tabs(["📋 Resumen", "📞 WhatsApp", "🥣 Producción", "🛒 Súper"])
+    t_res, t_cli, t_prod, t_sup = st.tabs(["📋 Resumen Visual", "📞 Clientes", "🥣 Producción", "🛒 Súper"])
     
     master_inv = {}
     lotes_masa = {}
 
     for ped in st.session_state.comanda:
         for it in ped['items']:
-            masa_id = CATALOGO[it['fam']].get("masa_ov", {}).get(it['esp'], CATALOGO[it['fam']]["masa"])
+            masa_id = CATALOGO[it['fam']].get("m_ov", {}).get(it['esp'], CATALOGO[it['fam']]["m"])
             if masa_id not in lotes_masa: lotes_masa[masa_id] = []
-            it_c = it.copy(); it_c['cli'] = ped['cliente']; lotes_masa[m_id if (m_id := masa_id) else 'Masa'].append(it_c)
+            it_con_cli = it.copy(); it_con_cli['cliente'] = ped['cliente']; lotes_masa[masa_id].append(it_con_cli)
 
     with t_res:
         for m_id, items in lotes_masa.items():
             m_dna = DB_MASAS[m_id]
-            m_batch = sum([(CATALOGO[i['fam']].get("p_ber_man", {}).get(i['esp'], CATALOGO[i['fam']]['tamaños'][i['tam']]) * i['can']) / m_dna['merma'] for i in items])
-            h_base = (m_batch * 100) / sum([v for k,v in m_dna['receta'].items()])
+            # Calculo de masa total
+            m_batch = 0
+            for i in items:
+                p_u_m = CATALOGO[i['fam']].get("p_ber_man", {}).get(i['esp'], CATALOGO[i['fam']]['tam'][i['tam']])
+                m_batch += (p_u_m * i['can']) / m_dna['merma']
             
+            h_b = (m_batch * 100) / sum(m_dna['receta'].values())
             st.markdown(f"#### 🛠️ Lote: {m_id} ({m_batch:,.1f}g)")
-            col_m, col_c = st.columns([0.3, 0.7])
+            col_m, col_p = st.columns([0.3, 0.7])
             with col_m:
-                st.info("Masa Principal")
+                st.info("Ingredientes Masa")
                 for k, v in m_dna['receta'].items():
-                    gr = v*h_base/100; st.write(f"• {k}: {gr:,.1f}g"); master_inv[k] = master_inv.get(k, 0) + gr
-            with col_c:
-                for it in items:
-                    st.success(f"{it['can']}x {it['esp']} ({it['tam']}) — {it['cli']}")
-                    # Desglose de complementos (Lágrima / Relleno)
-                    fam_cfg = CATALOGO[it['fam']]
-                    # Lógica simple para saber qué subreceta jalar
-                    if it['fam'] == "Conchas": sub_id = f"Lágrima {it['esp']}"
-                    elif it['fam'] == "Rollos": sub_id = "Schmear Canela"
-                    else: sub_id = None
-                    
-                    if sub_id and sub_id in DB_COMPLEMENTOS:
-                        rec_s = DB_COMPLEMENTOS[sub_id]
-                        p_u = fam_cfg['p_ex'][it['tam']] if isinstance(fam_cfg.get('p_ex'), dict) else fam_cfg.get('p_ex', 15)
-                        fact = (p_u * it['can']) / sum(rec_s.values())
-                        st.markdown(f"**{sub_id} ({p_u * it['can']:,.1f}g)**")
-                        for sk, sv in rec_s.items():
-                            g_s = sv * fact; st.write(f"- {sk}: {g_s:,.1f}g"); master_inv[sk] = master_inv.get(sk, 0) + g_s
+                    gr = v*h_b/100; st.write(f"• {k}: {gr:,.1f}g"); master_inv[k] = master_inv.get(k, 0) + gr
+            with col_p:
+                for it in items: st.success(f"{it['can']}x {it['esp']} ({it['tam']}) — {it['cliente']}")
 
     with t_cli:
         for i, p in enumerate(st.session_state.comanda):
             c1, c2, c3 = st.columns([0.4, 0.3, 0.3])
             c1.write(f"👤 **{p['cliente']}**")
-            u_wa = f"https://wa.me/521{p['wa']}?text="
-            c2.link_button("✅ Confirmar", u_wa + urllib.parse.quote("Confirmado"))
-            c3.link_button("🚀 Listo", u_wa + urllib.parse.quote("Listo"))
+            u = f"https://wa.me/521{p['wa']}?text="
+            c2.link_button("✅ Confirmar", u + "Recibido")
+            c3.link_button("🚀 Listo", u + "Listo!")
             if st.button("❌", key=f"del_{i}"): st.session_state.comanda.pop(i); st.rerun()
 
     with t_sup:
@@ -171,4 +154,4 @@ if st.session_state.comanda:
         for k, v in sorted(master_inv.items()):
             st.checkbox(f"{k}: **{v:,.1f}g**", key=f"sup_{k}")
 
-    if st.button("🗑️ LIMPIAR TODA LA PRODUCCIÓN"): st.session_state.comanda = []; st.rerun()
+    if st.button("🗑️ LIMPIAR TODO EL DÍA"): st.session_state.comanda = []; st.rerun()
