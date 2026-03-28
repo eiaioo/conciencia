@@ -6,13 +6,11 @@ import pandas as pd
 # ==========================================
 st.set_page_config(page_title="CONCIENCIA MASTER", layout="wide")
 
-# Inicialización de estados para evitar errores de carga
 if 'pedidos' not in st.session_state: st.session_state.pedidos = []
 if 'carrito' not in st.session_state: st.session_state.carrito = []
 if 'cli_n' not in st.session_state: st.session_state.cli_n = ""
 if 'cli_w' not in st.session_state: st.session_state.cli_w = ""
 
-# CSS: Diseño profesional, limpio y legible para la zona de producción
 st.markdown("""
     <style>
     .stApp { background-color: #FFFFFF; color: #000000; }
@@ -24,7 +22,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. BASE DE DATOS MAESTRA (Fichas Técnicas)
+# 2. BASE DE DATOS MAESTRA
 # ==========================================
 DATABASE = {
     "CONCHAS": {
@@ -70,8 +68,19 @@ INGREDIENTES = {
     "Masa Red Velvet": {"Harina de fuerza": 93, "Huevo": 30, "Leche": 5, "Levadura fresca": 1.0, "Sal": 1.8, "Azúcar": 16, "Mantequilla": 17, "Colorante Rojo": 2, "Cocoa": 5},
     "Muerto Brioche": {"Harina": 100, "Leche": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla": 25, "Sal": 1.8, "Polvo Guayaba": 5, "Levadura fresca": 5.0},
     "Batch Brownie": {"Mantequilla": 330, "Azúcar": 395, "Choco Turin": 165, "Harina de fuerza": 190, "Cocoa": 75, "Nuez": 140, "Sal": 8},
+    
+    # LÁGRIMAS (SABORES)
     "Lágrima Vainilla": {"Harina de fuerza": 100, "Azúcar Glass": 100, "Mantequilla": 100},
+    "Lágrima Chocolate": {"Harina de fuerza": 87.5, "Cacao": 12.5, "Azúcar Glass": 100, "Mantequilla": 100},
+    "Lágrima Matcha": {"Harina de fuerza": 95, "Matcha": 5, "Azúcar Glass": 100, "Mantequilla": 100},
+    "Lágrima Fresa": {"Harina de fuerza": 95, "Fresa Polvo": 5, "Azúcar Glass": 100, "Mantequilla": 100},
+    "Lágrima Mazapán": {"Harina de fuerza": 80, "Mazapán": 20, "Azúcar Glass": 100, "Mantequilla": 100},
+    "Lágrima Oreo": {"Harina de fuerza": 80, "Oreo Polvo": 20, "Azúcar Glass": 100, "Mantequilla": 100},
+    "Lágrima Pinole": {"Harina de fuerza": 80, "Pinole": 20, "Azúcar Glass": 100, "Mantequilla": 100},
+    
     "Pastelera Vainilla": {"Leche": 500, "Yemas": 100, "Azúcar": 120, "Fécula": 45, "Mantequilla": 30, "Vainilla": 6},
+    "Pastelera Chocolate": {"Leche": 500, "Yemas": 100, "Azúcar": 120, "Fécula": 45, "Mantequilla": 30, "Cocoa": 20},
+    "Pastelera Turín": {"Leche": 500, "Yemas": 100, "Azúcar": 120, "Fécula": 45, "Mantequilla": 30, "Choco Turin": 50},
     "Pastelera Ruby": {"Leche": 131, "Crema 35%": 131, "Yemas": 53, "Azúcar": 63, "Fécula": 24},
     "Schmear Canela": {"Mantequilla pomada": 200, "Azúcar Mascabada": 300, "Canela": 25, "Maicena": 20},
     "Pasas Earl Grey": {"Pasas": 4, "Arándanos": 4, "Te Earl Grey": 2},
@@ -92,91 +101,100 @@ if pagina == "📋 Captura":
     c1, c2 = st.columns(2)
     st.session_state.cli_n = c1.text_input("Nombre Cliente", value=st.session_state.cli_n)
     st.session_state.cli_w = c2.text_input("WhatsApp", value=st.session_state.cli_w)
-    
     st.divider()
-    
     col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
     fam = col1.selectbox("Pan", ["-"] + list(DATABASE.keys()))
-    
     if fam != "-":
         db_f = DATABASE[fam]
         esp = col2.selectbox("Variante", db_f["espec"])
         tam = col3.selectbox("Tamaño", list(db_f["tallas"].keys()))
         can = col4.number_input("Cant", min_value=1, value=1)
-        
         rel = "N/A"
-        if "cremas" in db_f:
-            rel = st.selectbox("Añadir Relleno", db_f["cremas"])
-
+        if "cremas" in db_f: rel = st.selectbox("Añadir Relleno", db_f["cremas"])
         if st.button("➕ AÑADIR AL CARRITO"):
             st.session_state.carrito.append({"fam": fam, "esp": esp, "tam": tam, "can": can, "rel": rel})
             st.rerun()
-
     if st.session_state.carrito:
         st.subheader(f"Carrito de {st.session_state.cli_n}")
         for i, p in enumerate(st.session_state.carrito):
-            # Limpieza de N/A: Solo muestra el relleno si no es N/A o Sin Relleno
             relleno_txt = f" - Relleno: {p['rel']}" if p['rel'] not in ["N/A", "Sin Relleno"] else ""
             st.write(f"**{p['can']}x {p['esp']} ({p['tam']})**{relleno_txt}")
-        
         if st.button("✅ GUARDAR PEDIDO FINAL"):
-            st.session_state.pedidos.append({
-                "cli": st.session_state.cli_n, 
-                "wa": st.session_state.cli_w, 
-                "items": st.session_state.carrito.copy()
-            })
+            st.session_state.pedidos.append({"cli": st.session_state.cli_n, "wa": st.session_state.cli_w, "items": st.session_state.carrito.copy()})
             st.session_state.carrito = []; st.session_state.cli_n = ""; st.session_state.cli_w = ""; st.rerun()
 
 # ==========================================
-# 4. MOTOR DE CÁLCULO CENTRAL
+# 4. MOTOR DE CÁLCULO (CENTRALIZADO)
 # ==========================================
 lotes_masa = {}
 lotes_complementos = {}
 compra_dia = {}
 
+# Este bloque calcula TODO independientemente de la pestaña
 for ped in st.session_state.pedidos:
     for it in ped['items']:
         db_it = DATABASE[it['fam']]
         
-        # Agrupar Masa
+        # 1. Agrupar Masa
         mid = db_it["masa_id"]
         if it['esp'] == "Red Velvet": mid = "Masa Red Velvet"
         if mid not in lotes_masa: lotes_masa[mid] = []
         it_ref = it.copy(); it_ref['cli_ref'] = ped['cli']
         lotes_masa[mid].append(it_ref)
 
-        # Recolectar Complementos
+        # 2. Recolectar Complementos (Lágrimas por sabor)
         subs = []
-        if it['fam'] == "CONCHAS": subs.append("Lágrima Vainilla")
+        if it['fam'] == "CONCHAS":
+            lag_sabor = f"Lágrima {it['esp']}"
+            subs.append(lag_sabor if lag_sabor in INGREDIENTES else "Lágrima Vainilla")
+        
         if it['fam'] == "ROSCAS": 
             subs.append("Decoración Rosca Ate")
             if it['rel'] != "Sin Relleno": subs.append(it['rel'])
-        if it['fam'] == "BERLINAS": subs.append("Pastelera Vainilla")
+        
+        if it['fam'] == "BERLINAS":
+            if "Ruby" in it['esp']: subs.append("Pastelera Ruby")
+            elif "Turín" in it['esp']: subs.append("Pastelera Turín")
+            else: subs.append("Pastelera Vainilla")
+            
         if it['fam'] == "ROLES":
             subs.append("Schmear Canela")
             if "Tradicional" in it['esp']: subs.append("Pasas Earl Grey")
         
         for sid in subs:
             if sid in INGREDIENTES:
-                p_u = 15
+                p_u = 15 # Default
                 if "Pastelera" in sid and it['fam']=="ROSCAS": p_u = db_it["peso_relleno_map"][it['tam']]
                 elif "Lágrima" in sid: p_u = db_it["peso_sub_map"][it['tam']]
                 lotes_complementos[sid] = lotes_complementos.get(sid, 0) + (p_u * it['can'])
+
+# Pre-calcular compra_dia para que esté disponible en todas las pestañas
+for mid, items in lotes_masa.items():
+    m_dna = INGREDIENTES[mid]
+    total_g = sum([(DATABASE[i['fam']]['tallas'][i['tam']] * i['can']) / m_dna.get('_merma',1) for i in items])
+    hb = (total_g * 100) / sum([v for k,v in m_dna.items() if not k.startswith('_')])
+    for k,v in m_dna.items():
+        if not k.startswith('_'): compra_dia[k] = compra_dia.get(k,0) + (v*hb/100)
+
+for sid, ptot in lotes_complementos.items():
+    sdna = INGREDIENTES[sid]
+    fs = ptot/sum(sdna.values())
+    for k,v in sdna.items(): compra_dia[k] = compra_dia.get(k,0) + (v*fs)
 
 # ==========================================
 # 5. VISTAS DE PRODUCCIÓN
 # ==========================================
 if pagina == "📉 Resumen":
-    st.title("Resumen de Producción")
-    if not lotes_masa: st.info("No hay pedidos registrados.")
+    st.title("Resumen")
+    if not lotes_masa: st.info("No hay pedidos.")
     
-    st.subheader("1. BATIDOS DE MASA (Peso Neto)")
+    st.subheader("BATIDOS DE MASA")
     for mid, items in lotes_masa.items():
         m_rec = INGREDIENTES[mid]
         total_g = sum([(DATABASE[i['fam']]['tallas'][i['tam']] * i['can']) / m_rec.get('_merma',1) for i in items])
         st.markdown(f"<div class='masa-box'><b>{mid}: {total_g:,.0f}g</b></div>", unsafe_allow_html=True)
 
-    st.subheader("2. COMPLEMENTOS Y RELLENOS")
+    st.subheader("COMPLEMENTOS Y RELLENOS")
     for sid, ptot in lotes_complementos.items():
         st.markdown(f"<div class='extra-box'><b>{sid}: {ptot:,.0f}g</b></div>", unsafe_allow_html=True)
 
@@ -184,30 +202,24 @@ elif pagina == "🥣 Producción":
     st.title("Hoja de Pesado")
     colA, colB = st.columns(2)
     with colA:
-        st.header("Pesado de Masas")
+        st.header("Masas")
         for mid, items in lotes_masa.items():
             m_dna = INGREDIENTES[mid]
             total_g = sum([(DATABASE[i['fam']]['tallas'][i['tam']] * i['can']) / m_dna.get('_merma',1) for i in items])
             hb = (total_g * 100) / sum([v for k,v in m_dna.items() if not k.startswith('_')])
             st.subheader(mid)
             for k,v in m_dna.items():
-                if not k.startswith('_'):
-                    gr = v*hb/100
-                    st.checkbox(f"{k}: {gr:,.1f}g", key=f"m_{mid}_{k}")
-                    compra_dia[k] = compra_dia.get(k,0)+gr
+                if not k.startswith('_'): st.checkbox(f"{k}: {v*hb/100:,.1f}g", key=f"m_{mid}_{k}")
     with colB:
-        st.header("Pesado de Extras")
+        st.header("Extras")
         for sid, ptot in lotes_complementos.items():
             sdna = INGREDIENTES[sid]
             st.subheader(sid)
             fs = ptot/sum(sdna.values())
-            for k,v in sdna.items():
-                gr = v*fs
-                st.checkbox(f"{k}: {gr:,.1f}g", key=f"s_{sid}_{k}")
-                compra_dia[k] = compra_dia.get(k,0)+gr
+            for k,v in sdna.items(): st.checkbox(f"{k}: {v*fs:,.1f}g", key=f"s_{sid}_{k}")
 
 elif pagina == "🛒 Lista Súper":
-    st.title("Lista de Compras Consolidada")
+    st.title("Lista de Compras")
     if not compra_dia: st.info("Agrega pedidos para ver la lista.")
     for k, v in sorted(compra_dia.items()):
         st.write(f"**{k}**: {v:,.1f}g")
