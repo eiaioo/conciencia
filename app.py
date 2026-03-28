@@ -28,7 +28,7 @@ MAPA_NORMALIZACION = {
     "Mantequilla": "Mantequilla sin sal",
     "Mantequilla pomada": "Mantequilla sin sal",
     "Leche": "Leche entera",
-    "Levadura": "Levadura fresca",
+    "Levadura": "Levadura seca",
     "Levadura fresca": "Levadura fresca",
     "Sal": "Sal fina",
     "Sal fina": "Sal fina",
@@ -82,8 +82,10 @@ DATABASE = {
 }
 
 INGREDIENTES = {
-    "Brioche Concha": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla sin sal": 40, "Sal fina": 2.5, "Levadura fresca": 1.8},
-    "Brioche Rosca 1:1": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura fresca": 0.35, "Sal fina": 2.2, "Azahar": 0.6},
+    # RECETA CORREGIDA: CONCHAS (Levadura Seca + Vainilla)
+    "Brioche Concha": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla sin sal": 40, "Sal fina": 2.5, "Levadura seca": 1.8, "Vainilla": 2.0},
+    
+    "Brioche Rosca 1:1": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura seca": 0.35, "Sal fina": 2.2, "Azahar": 0.6},
     "Berlina 1:5": {"Harina de fuerza": 100, "Azúcar": 22, "Mantequilla": 20, "Huevo": 25, "Leche": 22, "Sal": 1.8, "Levadura": 1.0, "_merma": 0.85},
     "Roles 1:5": {"Harina de fuerza": 93, "Huevo": 30, "Leche": 5, "Levadura fresca": 1.0, "Sal": 1.8, "Azúcar": 16, "Mantequilla": 17},
     "Masa Red Velvet": {"Harina de fuerza": 93, "Huevo": 30, "Leche": 5, "Levadura fresca": 1.0, "Sal": 1.8, "Azúcar": 16, "Mantequilla": 17, "Colorante Rojo": 2, "Cocoa": 5},
