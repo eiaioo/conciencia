@@ -208,12 +208,10 @@ if pagina == "📉 Resumen":
     for mid, items in lotes_masa.items():
         m_rec = INGREDIENTES[mid]
         total_g = sum([(DATABASE[i['fam']]['tallas'][i['tam']] * i['can']) / m_rec.get('_merma',1) for i in items])
-        # Resumen en kg con 3 decimales
-        st.markdown(f"<div class='masa-box'><b>{mid}: {total_g/1000:,.3f} kg</b></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='masa-box'><b>{mid}: {total_g:,.1f} g</b></div>", unsafe_allow_html=True)
     st.subheader("COMPLEMENTOS Y RELLENOS")
     for sid, ptot in lotes_complementos.items():
-        # Resumen en kg con 3 decimales
-        st.markdown(f"<div class='extra-box'><b>{sid}: {ptot/1000:,.3f} kg</b></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='extra-box'><b>{sid}: {ptot:,.1f} g</b></div>", unsafe_allow_html=True)
 
 elif pagina == "🥣 Producción":
     st.title("Hoja de Pesado")
@@ -227,8 +225,7 @@ elif pagina == "🥣 Producción":
             st.subheader(mid)
             for k,v in m_dna.items():
                 if not k.startswith('_'): 
-                    # Gramos con 2 decimales para precisión en báscula
-                    st.checkbox(f"{k}: {v*hb/100:,.2f} g", key=f"m_{mid}_{k}")
+                    st.checkbox(f"{k}: {v*hb/100:,.1f} g", key=f"m_{mid}_{k}")
     with colB:
         st.header("Extras")
         for sid, ptot in lotes_complementos.items():
@@ -236,12 +233,10 @@ elif pagina == "🥣 Producción":
             st.subheader(sid)
             fs = ptot/sum(sdna.values())
             for k,v in sdna.items(): 
-                # Gramos con 2 decimales para precisión en báscula
-                st.checkbox(f"{k}: {v*fs:,.2f} g", key=f"s_{sid}_{k}")
+                st.checkbox(f"{k}: {v*fs:,.1f} g", key=f"s_{sid}_{k}")
 
 elif pagina == "🛒 Lista Súper":
     st.title("Lista de Compras")
     if not compra_dia: st.info("Agrega pedidos para ver la lista.")
     for k, v in sorted(compra_dia.items()):
-        # Lista Súper siempre en kg con 3 decimales (precisión de gramo)
-        st.write(f"**{k}**: {v/1000:,.3f} kg")
+        st.write(f"**{k}**: {v:,.1f} g")
