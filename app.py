@@ -6,25 +6,25 @@ import pandas as pd
 # ==========================================
 st.set_page_config(page_title="CONCIENCIA MASTER", layout="wide")
 
-# Inicialización de estados
+# Inicialización de estados para evitar errores de carga
 if 'pedidos' not in st.session_state: st.session_state.pedidos = []
 if 'carrito' not in st.session_state: st.session_state.carrito = []
 if 'cli_n' not in st.session_state: st.session_state.cli_n = ""
 if 'cli_w' not in st.session_state: st.session_state.cli_w = ""
 
-# CSS: Diseño limpio y legible para cocina
+# CSS: Diseño profesional, limpio y legible para la zona de producción
 st.markdown("""
     <style>
     .stApp { background-color: #FFFFFF; color: #000000; }
     h1, h2, h3, h4, p, span, label { color: #000000 !important; font-weight: 600; }
     .stButton > button { border-radius: 10px; font-weight: bold; background-color: #F0F2F6; border: 1px solid #DDD; height: 3em; width: 100%; }
-    .masa-box { padding: 15px; border-radius: 15px; border: 2px solid #EEE; margin-bottom: 15px; background-color: #F9F9F9; }
-    .extra-box { padding: 15px; border-radius: 15px; border: 2px solid #FFE0B2; margin-bottom: 15px; background-color: #FFF8E1; }
+    .masa-box { padding: 15px; border-radius: 15px; border: 2px solid #000; margin-bottom: 15px; background-color: #F9F9F9; }
+    .extra-box { padding: 15px; border-radius: 15px; border: 2px solid #FF9800; margin-bottom: 15px; background-color: #FFF8E1; }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. BASE DE DATOS MAESTRA
+# 2. BASE DE DATOS MAESTRA (Fichas Técnicas)
 # ==========================================
 DATABASE = {
     "CONCHAS": {
@@ -71,7 +71,6 @@ INGREDIENTES = {
     "Muerto Brioche": {"Harina": 100, "Leche": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla": 25, "Sal": 1.8, "Polvo Guayaba": 5, "Levadura fresca": 5.0},
     "Batch Brownie": {"Mantequilla": 330, "Azúcar": 395, "Choco Turin": 165, "Harina de fuerza": 190, "Cocoa": 75, "Nuez": 140, "Sal": 8},
     "Lágrima Vainilla": {"Harina de fuerza": 100, "Azúcar Glass": 100, "Mantequilla": 100},
-    "Lágrima Chocolate": {"Harina de fuerza": 87.5, "Cacao": 12.5, "Azúcar Glass": 100, "Mantequilla": 100},
     "Pastelera Vainilla": {"Leche": 500, "Yemas": 100, "Azúcar": 120, "Fécula": 45, "Mantequilla": 30, "Vainilla": 6},
     "Pastelera Ruby": {"Leche": 131, "Crema 35%": 131, "Yemas": 53, "Azúcar": 63, "Fécula": 24},
     "Schmear Canela": {"Mantequilla pomada": 200, "Azúcar Mascabada": 300, "Canela": 25, "Maicena": 20},
@@ -80,7 +79,7 @@ INGREDIENTES = {
 }
 
 # ==========================================
-# 3. INTERFAZ
+# 3. INTERFAZ DE CAPTURA
 # ==========================================
 with st.sidebar:
     st.title("👨‍🍳 MENÚ")
@@ -116,7 +115,9 @@ if pagina == "📋 Captura":
     if st.session_state.carrito:
         st.subheader(f"Carrito de {st.session_state.cli_n}")
         for i, p in enumerate(st.session_state.carrito):
-            st.write(f"{p['can']}x {p['esp']} ({p['tam']}) - {p['rel']}")
+            # Limpieza de N/A: Solo muestra el relleno si no es N/A o Sin Relleno
+            relleno_txt = f" - Relleno: {p['rel']}" if p['rel'] not in ["N/A", "Sin Relleno"] else ""
+            st.write(f"**{p['can']}x {p['esp']} ({p['tam']})**{relleno_txt}")
         
         if st.button("✅ GUARDAR PEDIDO FINAL"):
             st.session_state.pedidos.append({
@@ -127,7 +128,7 @@ if pagina == "📋 Captura":
             st.session_state.carrito = []; st.session_state.cli_n = ""; st.session_state.cli_w = ""; st.rerun()
 
 # ==========================================
-# 4. MOTOR DE CÁLCULO
+# 4. MOTOR DE CÁLCULO CENTRAL
 # ==========================================
 lotes_masa = {}
 lotes_complementos = {}
@@ -136,6 +137,7 @@ compra_dia = {}
 for ped in st.session_state.pedidos:
     for it in ped['items']:
         db_it = DATABASE[it['fam']]
+        
         # Agrupar Masa
         mid = db_it["masa_id"]
         if it['esp'] == "Red Velvet": mid = "Masa Red Velvet"
@@ -143,7 +145,7 @@ for ped in st.session_state.pedidos:
         it_ref = it.copy(); it_ref['cli_ref'] = ped['cli']
         lotes_masa[mid].append(it_ref)
 
-        # Complementos
+        # Recolectar Complementos
         subs = []
         if it['fam'] == "CONCHAS": subs.append("Lágrima Vainilla")
         if it['fam'] == "ROSCAS": 
@@ -166,14 +168,13 @@ for ped in st.session_state.pedidos:
 # ==========================================
 if pagina == "📉 Resumen":
     st.title("Resumen de Producción")
-    if not lotes_masa: st.info("No hay pedidos.")
+    if not lotes_masa: st.info("No hay pedidos registrados.")
     
     st.subheader("1. BATIDOS DE MASA (Peso Neto)")
     for mid, items in lotes_masa.items():
         m_rec = INGREDIENTES[mid]
         total_g = sum([(DATABASE[i['fam']]['tallas'][i['tam']] * i['can']) / m_rec.get('_merma',1) for i in items])
-        with st.container():
-            st.markdown(f"<div class='masa-box'><b>{mid}: {total_g:,.0f}g</b></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='masa-box'><b>{mid}: {total_g:,.0f}g</b></div>", unsafe_allow_html=True)
 
     st.subheader("2. COMPLEMENTOS Y RELLENOS")
     for sid, ptot in lotes_complementos.items():
@@ -183,7 +184,7 @@ elif pagina == "🥣 Producción":
     st.title("Hoja de Pesado")
     colA, colB = st.columns(2)
     with colA:
-        st.header("Masas")
+        st.header("Pesado de Masas")
         for mid, items in lotes_masa.items():
             m_dna = INGREDIENTES[mid]
             total_g = sum([(DATABASE[i['fam']]['tallas'][i['tam']] * i['can']) / m_dna.get('_merma',1) for i in items])
@@ -195,7 +196,7 @@ elif pagina == "🥣 Producción":
                     st.checkbox(f"{k}: {gr:,.1f}g", key=f"m_{mid}_{k}")
                     compra_dia[k] = compra_dia.get(k,0)+gr
     with colB:
-        st.header("Extras")
+        st.header("Pesado de Extras")
         for sid, ptot in lotes_complementos.items():
             sdna = INGREDIENTES[sid]
             st.subheader(sid)
@@ -206,7 +207,7 @@ elif pagina == "🥣 Producción":
                 compra_dia[k] = compra_dia.get(k,0)+gr
 
 elif pagina == "🛒 Lista Súper":
-    st.title("Lista de Compras")
-    # Recalcular compra_dia para asegurar que esté lleno
+    st.title("Lista de Compras Consolidada")
+    if not compra_dia: st.info("Agrega pedidos para ver la lista.")
     for k, v in sorted(compra_dia.items()):
         st.write(f"**{k}**: {v:,.1f}g")
