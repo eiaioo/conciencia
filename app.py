@@ -22,7 +22,28 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. BASE DE DATOS MAESTRA
+# 2. NORMALIZACIÓN DE INGREDIENTES
+# ==========================================
+MAPA_NORMALIZACION = {
+    "Mantequilla": "Mantequilla sin sal",
+    "Mantequilla pomada": "Mantequilla sin sal",
+    "Leche": "Leche entera",
+    "Levadura": "Levadura fresca",
+    "Levadura fresca": "Levadura fresca",
+    "Sal": "Sal fina",
+    "Sal fina": "Sal fina",
+    "Harina": "Harina de fuerza",
+    "Harina de fuerza": "Harina de fuerza",
+    "Cacao": "Cocoa",
+    "Choco Turin": "Chocolate Turín",
+    "Choco Turin Amargo": "Chocolate Turín"
+}
+
+def normalizar(nombre):
+    return MAPA_NORMALIZACION.get(nombre, nombre)
+
+# ==========================================
+# 3. BASE DE DATOS MAESTRA
 # ==========================================
 DATABASE = {
     "CONCHAS": {
@@ -61,15 +82,14 @@ DATABASE = {
 }
 
 INGREDIENTES = {
-    "Brioche Concha": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla sin sal": 40, "Sal fina": 2.5, "Levadura": 1.8},
-    "Brioche Rosca 1:1": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche": 24, "Levadura": 0.35, "Sal": 2.2, "Azahar": 0.6},
+    "Brioche Concha": {"Harina de fuerza": 100, "Huevo": 40, "Leche entera": 24, "Azúcar": 30, "Mantequilla sin sal": 40, "Sal fina": 2.5, "Levadura fresca": 1.8},
+    "Brioche Rosca 1:1": {"Harina de fuerza": 100, "Azúcar": 25, "Miel": 3, "Mantequilla sin sal": 30, "Huevo": 20, "Yemas": 4, "Leche entera": 24, "Levadura fresca": 0.35, "Sal fina": 2.2, "Azahar": 0.6},
     "Berlina 1:5": {"Harina de fuerza": 100, "Azúcar": 22, "Mantequilla": 20, "Huevo": 25, "Leche": 22, "Sal": 1.8, "Levadura": 1.0, "_merma": 0.85},
     "Roles 1:5": {"Harina de fuerza": 93, "Huevo": 30, "Leche": 5, "Levadura fresca": 1.0, "Sal": 1.8, "Azúcar": 16, "Mantequilla": 17},
     "Masa Red Velvet": {"Harina de fuerza": 93, "Huevo": 30, "Leche": 5, "Levadura fresca": 1.0, "Sal": 1.8, "Azúcar": 16, "Mantequilla": 17, "Colorante Rojo": 2, "Cocoa": 5},
     "Muerto Brioche": {"Harina": 100, "Leche": 30, "Yemas": 18, "Claras": 12, "Azúcar": 20, "Mantequilla": 25, "Sal": 1.8, "Polvo Guayaba": 5, "Levadura fresca": 5.0},
     "Batch Brownie": {"Mantequilla": 330, "Azúcar": 395, "Choco Turin": 165, "Harina de fuerza": 190, "Cocoa": 75, "Nuez": 140, "Sal": 8},
     
-    # LÁGRIMAS (SABORES)
     "Lágrima Vainilla": {"Harina de fuerza": 100, "Azúcar Glass": 100, "Mantequilla": 100},
     "Lágrima Chocolate": {"Harina de fuerza": 87.5, "Cacao": 12.5, "Azúcar Glass": 100, "Mantequilla": 100},
     "Lágrima Matcha": {"Harina de fuerza": 95, "Matcha": 5, "Azúcar Glass": 100, "Mantequilla": 100},
@@ -88,7 +108,7 @@ INGREDIENTES = {
 }
 
 # ==========================================
-# 3. INTERFAZ DE CAPTURA
+# 4. INTERFAZ DE CAPTURA
 # ==========================================
 with st.sidebar:
     st.title("👨‍🍳 MENÚ")
@@ -124,79 +144,76 @@ if pagina == "📋 Captura":
             st.session_state.carrito = []; st.session_state.cli_n = ""; st.session_state.cli_w = ""; st.rerun()
 
 # ==========================================
-# 4. MOTOR DE CÁLCULO (CENTRALIZADO)
+# 5. MOTOR DE CÁLCULO CENTRAL
 # ==========================================
 lotes_masa = {}
 lotes_complementos = {}
 compra_dia = {}
 
-# Este bloque calcula TODO independientemente de la pestaña
 for ped in st.session_state.pedidos:
     for it in ped['items']:
         db_it = DATABASE[it['fam']]
-        
-        # 1. Agrupar Masa
         mid = db_it["masa_id"]
         if it['esp'] == "Red Velvet": mid = "Masa Red Velvet"
         if mid not in lotes_masa: lotes_masa[mid] = []
         it_ref = it.copy(); it_ref['cli_ref'] = ped['cli']
         lotes_masa[mid].append(it_ref)
 
-        # 2. Recolectar Complementos (Lágrimas por sabor)
         subs = []
         if it['fam'] == "CONCHAS":
             lag_sabor = f"Lágrima {it['esp']}"
             subs.append(lag_sabor if lag_sabor in INGREDIENTES else "Lágrima Vainilla")
-        
         if it['fam'] == "ROSCAS": 
             subs.append("Decoración Rosca Ate")
             if it['rel'] != "Sin Relleno": subs.append(it['rel'])
-        
         if it['fam'] == "BERLINAS":
             if "Ruby" in it['esp']: subs.append("Pastelera Ruby")
             elif "Turín" in it['esp']: subs.append("Pastelera Turín")
             else: subs.append("Pastelera Vainilla")
-            
         if it['fam'] == "ROLES":
             subs.append("Schmear Canela")
             if "Tradicional" in it['esp']: subs.append("Pasas Earl Grey")
         
         for sid in subs:
             if sid in INGREDIENTES:
-                p_u = 15 # Default
+                p_u = 15
                 if "Pastelera" in sid and it['fam']=="ROSCAS": p_u = db_it["peso_relleno_map"][it['tam']]
                 elif "Lágrima" in sid: p_u = db_it["peso_sub_map"][it['tam']]
                 lotes_complementos[sid] = lotes_complementos.get(sid, 0) + (p_u * it['can'])
 
-# Pre-calcular compra_dia para que esté disponible en todas las pestañas
+# Consolidación con Normalización
 for mid, items in lotes_masa.items():
     m_dna = INGREDIENTES[mid]
     total_g = sum([(DATABASE[i['fam']]['tallas'][i['tam']] * i['can']) / m_dna.get('_merma',1) for i in items])
     hb = (total_g * 100) / sum([v for k,v in m_dna.items() if not k.startswith('_')])
     for k,v in m_dna.items():
-        if not k.startswith('_'): compra_dia[k] = compra_dia.get(k,0) + (v*hb/100)
+        if not k.startswith('_'):
+            nombre_norm = normalizar(k)
+            compra_dia[nombre_norm] = compra_dia.get(nombre_norm, 0) + (v*hb/100)
 
 for sid, ptot in lotes_complementos.items():
     sdna = INGREDIENTES[sid]
     fs = ptot/sum(sdna.values())
-    for k,v in sdna.items(): compra_dia[k] = compra_dia.get(k,0) + (v*fs)
+    for k,v in sdna.items():
+        nombre_norm = normalizar(k)
+        compra_dia[nombre_norm] = compra_dia.get(nombre_norm, 0) + (v*fs)
 
 # ==========================================
-# 5. VISTAS DE PRODUCCIÓN
+# 6. VISTAS
 # ==========================================
 if pagina == "📉 Resumen":
     st.title("Resumen")
     if not lotes_masa: st.info("No hay pedidos.")
-    
     st.subheader("BATIDOS DE MASA")
     for mid, items in lotes_masa.items():
         m_rec = INGREDIENTES[mid]
         total_g = sum([(DATABASE[i['fam']]['tallas'][i['tam']] * i['can']) / m_rec.get('_merma',1) for i in items])
-        st.markdown(f"<div class='masa-box'><b>{mid}: {total_g:,.0f}g</b></div>", unsafe_allow_html=True)
-
+        # Resumen en kg con 3 decimales
+        st.markdown(f"<div class='masa-box'><b>{mid}: {total_g/1000:,.3f} kg</b></div>", unsafe_allow_html=True)
     st.subheader("COMPLEMENTOS Y RELLENOS")
     for sid, ptot in lotes_complementos.items():
-        st.markdown(f"<div class='extra-box'><b>{sid}: {ptot:,.0f}g</b></div>", unsafe_allow_html=True)
+        # Resumen en kg con 3 decimales
+        st.markdown(f"<div class='extra-box'><b>{sid}: {ptot/1000:,.3f} kg</b></div>", unsafe_allow_html=True)
 
 elif pagina == "🥣 Producción":
     st.title("Hoja de Pesado")
@@ -209,17 +226,22 @@ elif pagina == "🥣 Producción":
             hb = (total_g * 100) / sum([v for k,v in m_dna.items() if not k.startswith('_')])
             st.subheader(mid)
             for k,v in m_dna.items():
-                if not k.startswith('_'): st.checkbox(f"{k}: {v*hb/100:,.1f}g", key=f"m_{mid}_{k}")
+                if not k.startswith('_'): 
+                    # Gramos con 2 decimales para precisión en báscula
+                    st.checkbox(f"{k}: {v*hb/100:,.2f} g", key=f"m_{mid}_{k}")
     with colB:
         st.header("Extras")
         for sid, ptot in lotes_complementos.items():
             sdna = INGREDIENTES[sid]
             st.subheader(sid)
             fs = ptot/sum(sdna.values())
-            for k,v in sdna.items(): st.checkbox(f"{k}: {v*fs:,.1f}g", key=f"s_{sid}_{k}")
+            for k,v in sdna.items(): 
+                # Gramos con 2 decimales para precisión en báscula
+                st.checkbox(f"{k}: {v*fs:,.2f} g", key=f"s_{sid}_{k}")
 
 elif pagina == "🛒 Lista Súper":
     st.title("Lista de Compras")
     if not compra_dia: st.info("Agrega pedidos para ver la lista.")
     for k, v in sorted(compra_dia.items()):
-        st.write(f"**{k}**: {v:,.1f}g")
+        # Lista Súper siempre en kg con 3 decimales (precisión de gramo)
+        st.write(f"**{k}**: {v/1000:,.3f} kg")
